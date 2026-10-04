@@ -21,4 +21,6 @@ type Story = StoryObj<HudArgs>;
 export const Default: Story = { args: { fixture: 'emptyMap' } };
 /** Enemies on the field: the next-wave button is disabled. */
 export const CannotStartWave: Story = { args: { fixture: 'oneOfEachEnemy' } };
+/** Not enough gold for any tower: build buttons are disabled. */
+export const LowGold: Story = { args: { fixture: 'lowGold' } };
 export const LostOverlay: Story = { args: { fixture: 'lost' } };

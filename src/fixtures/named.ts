@@ -16,6 +16,9 @@ export const fixtures = {
       .withEnemies('fast', 1, { atPathT: 700, hpRatio: 0.5 })
       .build(),
 
+  /** Not enough gold for any tower, with one tower already built. */
+  lowGold: (): Fixture => scenario().withTower('basic', 'slot-2').withGold(30).build(),
+
   /** A group of enemies about to reach the end of the Path. */
   enemyLeaking: (): Fixture =>
     scenario()

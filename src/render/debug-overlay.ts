@@ -1,6 +1,6 @@
 import type * as Phaser from 'phaser';
-import type { LevelDef } from '../content/schemas';
-import { buildPath, poseAt } from '../sim/path';
+import type { LevelDef, UnitCatalog } from '../content/schemas';
+import { buildPath, cellCenter, poseAt } from '../sim/path';
 import type { SimState } from '../sim/types';
 
 /** Fixed, skin-independent look so debug marks never read as game content. */
@@ -20,12 +20,13 @@ export interface DebugOverlay {
 }
 
 /**
- * Draws path waypoints, Slot ids and grid coordinates, plus each enemy's id and hp,
- * above the world.
+ * Draws path waypoints, Slot ids and grid coordinates, each tower's range and id, and
+ * each enemy's id and hp, above the world.
  */
 export function createDebugOverlay(
   scene: Phaser.Scene,
   level: LevelDef,
+  units: UnitCatalog,
   visible: boolean,
 ): DebugOverlay {
   const root = scene.add.container(0, 0).setDepth(1000);
@@ -50,7 +51,18 @@ export function createDebugOverlay(
     root.add(scene.add.text(x + 8, y + 22, `${slot.col},${slot.row}`, TEXT_STYLE));
   }
 
-  const enemyLabels = new Map<number, Phaser.GameObjects.Text>();
+  const ranges = scene.add.graphics();
+  root.add(ranges);
+  const labels = new Map<number, Phaser.GameObjects.Text>();
+  const label = (id: number, x: number, y: number, text: string) => {
+    let t = labels.get(id);
+    if (!t) {
+      t = scene.add.text(0, 0, '', TEXT_STYLE).setOrigin(0.5, 0);
+      labels.set(id, t);
+      root.add(t);
+    }
+    t.setPosition(x, y).setText(text);
+  };
 
   root.setVisible(visible);
 
@@ -61,22 +73,26 @@ export function createDebugOverlay(
     setVisible: (v) => root.setVisible(v),
     sync(state) {
       const seen = new Set<number>();
-      for (const enemy of state.enemies) {
-        seen.add(enemy.id);
-        let label = enemyLabels.get(enemy.id);
-        if (!label) {
-          label = scene.add.text(0, 0, '', TEXT_STYLE).setOrigin(0.5, 0);
-          enemyLabels.set(enemy.id, label);
-          root.add(label);
-        }
-        const pose = poseAt(path, enemy.pathT);
-        label.setPosition(pose.x, pose.y + 16);
-        label.setText(`#${enemy.id} ${Math.ceil(enemy.hp)}/${enemy.maxHp}`);
+      ranges.clear();
+      ranges.lineStyle(1, COLOR, 0.8);
+      for (const tower of state.towers) {
+        const slot = level.slots.find((s) => s.id === tower.slotId);
+        const def = units.towers[tower.kind];
+        if (!slot) continue;
+        const c = cellCenter(slot, tileSize);
+        if (def) ranges.strokeCircle(c.x, c.y, def.range);
+        seen.add(tower.id);
+        label(tower.id, c.x, c.y + 20, `#${tower.id} ${tower.kind}`);
       }
-      for (const [id, label] of enemyLabels) {
+      for (const enemy of state.enemies) {
+        const pose = poseAt(path, enemy.pathT);
+        seen.add(enemy.id);
+        label(enemy.id, pose.x, pose.y + 16, `#${enemy.id} ${Math.ceil(enemy.hp)}/${enemy.maxHp}`);
+      }
+      for (const [id, text] of labels) {
         if (!seen.has(id)) {
-          label.destroy();
-          enemyLabels.delete(id);
+          text.destroy();
+          labels.delete(id);
         }
       }
     },

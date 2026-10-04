@@ -1,8 +1,9 @@
 import type * as Phaser from 'phaser';
 import type { LevelDef } from '../../../content/schemas';
-import { buildPath } from '../../../sim/path';
-import { colorNumber, type MapView, type Skin, type SkinTheme } from '../../skin';
+import { buildPath, cellCenter } from '../../../sim/path';
+import { colorNumber, type MapView, type Skin, type SkinTheme, type SlotHover } from '../../skin';
 import { createEnemyView } from './enemy-view';
+import { createTowerView } from './tower-view';
 import { palette } from './palette';
 
 const theme: SkinTheme = {
@@ -18,6 +19,7 @@ const theme: SkinTheme = {
     button: palette.button,
     buttonHover: palette.buttonHover,
     buttonDisabled: palette.buttonDisabled,
+    selection: palette.selection,
     overlay: palette.overlay,
   },
   fonts: {
@@ -53,8 +55,19 @@ function createMap(scene: Phaser.Scene, level: LevelDef): MapView {
   });
 
   const slots = scene.add.graphics();
-  const drawSlots = (hovered: string | null) => {
+  const range = scene.add.graphics().setDepth(3);
+  const drawSlots = (hover: SlotHover | null) => {
+    const hovered = hover?.slotId ?? null;
     slots.clear();
+    range.clear();
+    const hoveredSlot = level.slots.find((s) => s.id === hovered);
+    if (hoveredSlot && hover?.rangePreview) {
+      const c = cellCenter(hoveredSlot, tileSize);
+      range.fillStyle(colorNumber(palette.rangePreview), 0.12);
+      range.fillCircle(c.x, c.y, hover.rangePreview);
+      range.lineStyle(1, colorNumber(palette.rangePreview), 0.6);
+      range.strokeCircle(c.x, c.y, hover.rangePreview);
+    }
     for (const slot of level.slots) {
       const isHovered = slot.id === hovered;
       const x = slot.col * tileSize + SLOT_INSET;
@@ -73,8 +86,11 @@ function createMap(scene: Phaser.Scene, level: LevelDef): MapView {
   root.add([ground, slots]);
 
   return {
-    setSlotHover: drawSlots,
-    destroy: () => root.destroy(),
+    setHover: drawSlots,
+    destroy: () => {
+      root.destroy();
+      range.destroy();
+    },
   };
 }
 
@@ -83,10 +99,6 @@ export const polygonSkin: Skin = {
   theme,
   preload: () => {},
   createMap,
-  createView: (scene, ref) => {
-    switch (ref.type) {
-      case 'enemy':
-        return createEnemyView(scene, ref.kind);
-    }
-  },
+  createTowerView,
+  createEnemyView,
 };

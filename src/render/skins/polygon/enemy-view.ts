@@ -46,7 +46,7 @@ const BAR_WIDTH = 24;
 const BAR_HEIGHT = 4;
 const BAR_OFFSET_Y = -20;
 
-export function createEnemyView(scene: Phaser.Scene, kind: string): EntityView {
+export function createEnemyView(scene: Phaser.Scene, kind: string): EntityView<Enemy> {
   const shape = SHAPES[kind] ?? FALLBACK;
   const root = scene.add.container(0, 0).setDepth(10);
 

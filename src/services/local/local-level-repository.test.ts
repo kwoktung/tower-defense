@@ -28,6 +28,7 @@ describe('local LevelRepository', () => {
     expect(level.slots).toHaveLength(12);
     expect(level.waves).toHaveLength(3);
     expect(Object.keys(catalog.enemies)).toEqual(['normal', 'fast']);
+    expect(Object.keys(catalog.towers)).toEqual(['basic']);
   });
 
   it('rejects an unknown level id', async () => {
@@ -78,11 +79,22 @@ describe('local LevelRepository', () => {
   });
 
   it('rejects an invalid Unit catalog and names the field', async () => {
-    const broken = { enemies: { normal: { ...units.enemies.normal, speed: -1 } } };
+    const broken = { ...units, enemies: { normal: { ...units.enemies.normal, speed: -1 } } };
 
     const message = await messageOf(repoWith({ units: broken }).getUnitCatalog());
 
     expect(message).toContain('Invalid unit catalog');
     expect(message).toContain('enemies.normal.speed');
+  });
+
+  it('rejects a splash tower without a radius', async () => {
+    const broken = {
+      ...units,
+      towers: { bomb: { ...units.towers.basic, attack: { mode: 'splash' } } },
+    };
+
+    const message = await messageOf(repoWith({ units: broken }).getUnitCatalog());
+
+    expect(message).toContain('towers.bomb.attack.radius');
   });
 });

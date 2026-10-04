@@ -4,6 +4,9 @@ export const palette = {
   path: '#c9b28a',
   slot: '#3d5a4a',
   slotHover: '#6fae8a',
+  towerBasic: '#3b82f6',
+  towerUnknown: '#1e40af',
+  rangePreview: '#e2e8f0',
   enemyNormal: '#dc2626',
   enemyFast: '#fb7185',
   enemyUnknown: '#991b1b',
@@ -16,5 +19,6 @@ export const palette = {
   button: '#334155',
   buttonHover: '#475569',
   buttonDisabled: '#1f2937',
+  selection: '#fbbf24',
   overlay: '#000000',
 } as const;

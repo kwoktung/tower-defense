@@ -9,6 +9,16 @@ export interface Enemy {
   pathT: number;
 }
 
+export interface Tower {
+  id: number;
+  kind: string;
+  slotId: string;
+  /** Ticks until the tower may fire again; 0 means ready. */
+  cooldownTicks: number;
+  /** Enemy currently aimed at, if any. */
+  targetId: number | null;
+}
+
 /** Where the current Wave is in its spawn groups. */
 export interface SpawnCursor {
   groupIndex: number;
@@ -27,7 +37,7 @@ export interface WaveProgress {
 
 /**
  * The complete, serializable state of a Simulation at one tick.
- * Towers and projectiles arrive with the tickets that introduce them.
+ * Projectiles arrive with the ticket that introduces them.
  */
 export interface SimState {
   tick: number;
@@ -36,12 +46,14 @@ export interface SimState {
   lives: number;
   wave: WaveProgress;
   outcome: Outcome;
+  towers: Tower[];
   enemies: Enemy[];
   nextId: number;
 }
 
 export type SimEvent =
   | { type: 'waveStarted'; index: number }
+  | { type: 'towerPlaced'; id: number; kind: string; slotId: string }
   | { type: 'enemySpawned'; id: number; kind: string }
   | { type: 'enemyLeaked'; id: number; livesLost: number }
   | { type: 'gameEnded'; outcome: Exclude<Outcome, 'playing'> };

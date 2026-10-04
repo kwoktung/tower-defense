@@ -206,3 +206,48 @@ describe('determinism', () => {
     expect(run()).toEqual(first);
   });
 });
+
+describe('building towers', () => {
+  it('builds on an empty Slot, pays the cost and reports towerPlaced on the next advance', () => {
+    const sim = createSimulation(fixtures.emptyMap());
+
+    const result = sim.placeTower('slot-3', 'basic');
+
+    expect(result).toEqual({ ok: true, id: expect.any(Number) });
+    expect(sim.state.gold).toBe(120 - 50);
+    expect(sim.state.towers).toEqual([
+      {
+        id: (result as { id: number }).id,
+        kind: 'basic',
+        slotId: 'slot-3',
+        cooldownTicks: 0,
+        targetId: null,
+      },
+    ]);
+    expect(ofType(sim.advance(1), 'towerPlaced')).toEqual([
+      { type: 'towerPlaced', id: (result as { id: number }).id, kind: 'basic', slotId: 'slot-3' },
+    ]);
+  });
+
+  it.each([
+    ['slotOccupied', () => scenario().withTower('basic', 'slot-3').build(), 'slot-3', 'basic'],
+    ['notEnoughGold', () => fixtures.lowGold(), 'slot-3', 'basic'],
+    ['unknownSlot', () => fixtures.emptyMap(), 'slot-99', 'basic'],
+    ['unknownKind', () => fixtures.emptyMap(), 'slot-3', 'laser'],
+    ['gameOver', () => fixtures.lost(), 'slot-3', 'basic'],
+  ] as const)('refuses with %s and leaves the state untouched', (reason, fixture, slotId, kind) => {
+    const sim = createSimulation(fixture());
+    const before = structuredClone(sim.state);
+
+    expect(sim.placeTower(slotId, kind)).toEqual({ ok: false, reason });
+    expect(sim.state).toEqual(before);
+    expect(ofType(sim.advance(0), 'towerPlaced')).toEqual([]);
+  });
+
+  it('can spend exactly all of the gold', () => {
+    const sim = createSimulation(scenario().withGold(50).build());
+
+    expect(sim.placeTower('slot-1', 'basic').ok).toBe(true);
+    expect(sim.state.gold).toBe(0);
+  });
+});

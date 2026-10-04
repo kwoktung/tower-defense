@@ -3,6 +3,7 @@ import type { SimContext } from './context';
 import { buildPath } from './path';
 import { moveEnemies } from './systems/enemies';
 import { resolveOutcome } from './systems/outcome';
+import { placeTower, type PlaceTowerResult } from './systems/towers';
 import { canStartNextWave, spawnEnemies, startNextWave } from './systems/waves';
 import type { SimEvent, SimState } from './types';
 
@@ -23,7 +24,11 @@ export interface Simulation {
   canStartNextWave(): boolean;
   /** Starts the next Wave if allowed; its spawning begins on the next advanced tick. */
   startNextWave(): boolean;
+  /** Builds a tower on an empty Slot; the towerPlaced event arrives with the next advance. */
+  placeTower(slotId: string, kind: string): PlaceTowerResult;
 }
+
+export type { PlaceTowerFailure, PlaceTowerResult } from './systems/towers';
 
 export function createInitialState(level: LevelDef, seed: number): SimState {
   return {
@@ -33,6 +38,7 @@ export function createInitialState(level: LevelDef, seed: number): SimState {
     lives: level.startLives,
     wave: { index: -1, spawning: null },
     outcome: 'playing',
+    towers: [],
     enemies: [],
     nextId: 1,
   };
@@ -71,5 +77,6 @@ export function createSimulation(input: SimulationInput): Simulation {
       pending.push(startNextWave(state));
       return true;
     },
+    placeTower: (slotId, kind) => placeTower(state, ctx, slotId, kind, pending),
   };
 }

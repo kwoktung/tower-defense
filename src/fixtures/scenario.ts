@@ -59,6 +59,20 @@ export class ScenarioBuilder {
     return this;
   }
 
+  /** Puts a tower on a Slot without paying for it. */
+  withTower(kind: string, slotId: string): this {
+    if (!this.units.towers[kind]) throw new Error(`Unknown tower kind "${kind}"`);
+    if (!this.level.slots.some((s) => s.id === slotId)) throw new Error(`Unknown slot "${slotId}"`);
+    this.state.towers.push({
+      id: this.state.nextId++,
+      kind,
+      slotId,
+      cooldownTicks: 0,
+      targetId: null,
+    });
+    return this;
+  }
+
   withEnemies(kind: string, count: number, placement: EnemyPlacement): this {
     const def = this.units.enemies[kind];
     if (!def) throw new Error(`Unknown enemy kind "${kind}"`);

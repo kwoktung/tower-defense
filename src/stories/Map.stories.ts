@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/html-vite';
-import { loadBundledLevel } from '../content/bundled';
+import { loadBundledLevel, loadBundledUnits } from '../content/bundled';
 import { createDebugOverlay } from '../render/debug-overlay';
 import { baseArgs, baseArgTypes, type BaseStoryArgs } from '../storybook/args';
 import { mountPhaserStory } from '../storybook/mount-phaser-story';
@@ -26,8 +26,10 @@ const meta: Meta<MapArgs> = {
       debug: args.debug,
       build: ({ scene, skin, debug }) => {
         const level = loadBundledLevel(args.level);
-        skin.createMap(scene, level).setSlotHover(args.hoverSlot);
-        createDebugOverlay(scene, level, debug);
+        skin
+          .createMap(scene, level)
+          .setHover(args.hoverSlot ? { slotId: args.hoverSlot, rangePreview: null } : null);
+        createDebugOverlay(scene, level, loadBundledUnits(), debug);
       },
     }),
 };

@@ -8,6 +8,7 @@ import { slotAt } from '../sim/path';
 import { createSimulation, type Simulation } from '../sim/simulation';
 import type { HudSceneData } from './HudScene';
 import { SceneKeys } from './keys';
+import type { UiState } from './ui-state';
 
 export interface GameSceneData {
   level: LevelDef;
@@ -35,11 +36,25 @@ export class GameScene extends Phaser.Scene {
     this.fixedStep = createFixedStep();
     this.mapView = skin.createMap(this, level);
     this.world = new WorldRenderer(this, skin, level);
-    this.debugOverlay = createDebugOverlay(this, level, debug);
+    this.debugOverlay = createDebugOverlay(this, level, units, debug);
     this.world.render(this.sim.state);
 
-    this.input.on(Phaser.Input.Events.POINTER_MOVE, (pointer: Phaser.Input.Pointer) => {
-      this.mapView.setSlotHover(slotAt(level, pointer.worldX, pointer.worldY));
+    const ui: UiState = { selectedTower: Object.keys(units.towers)[0] ?? null };
+    /** The empty Slot under the pointer, if any. Occupied Slots don't react. */
+    const emptySlotAt = (pointer: Phaser.Input.Pointer) => {
+      const slotId = slotAt(level, pointer.worldX, pointer.worldY);
+      return slotId && !this.sim.state.towers.some((t) => t.slotId === slotId) ? slotId : null;
+    };
+    const updateHover = (pointer: Phaser.Input.Pointer) => {
+      const slotId = emptySlotAt(pointer);
+      const def = ui.selectedTower ? units.towers[ui.selectedTower] : undefined;
+      this.mapView.setHover(slotId ? { slotId, rangePreview: def?.range ?? null } : null);
+    };
+    this.input.on(Phaser.Input.Events.POINTER_MOVE, updateHover);
+    this.input.on(Phaser.Input.Events.POINTER_DOWN, (pointer: Phaser.Input.Pointer) => {
+      const slotId = emptySlotAt(pointer);
+      if (slotId && ui.selectedTower) this.sim.placeTower(slotId, ui.selectedTower);
+      updateHover(pointer);
     });
     this.input.keyboard?.on('keydown-D', () => {
       this.debugOverlay.setVisible(!this.debugOverlay.visible);
@@ -47,6 +62,7 @@ export class GameScene extends Phaser.Scene {
 
     const hud: HudSceneData = {
       sim: this.sim,
+      ui,
       theme: skin.theme,
       onRestart: () => {
         const next: GameSceneData = { ...data, debug: this.debugOverlay.visible, seed: Date.now() };

@@ -24,7 +24,9 @@ const meta: Meta<EnemyArgs> = {
       .atWave(0)
       .withEnemies(args.kind, 1, { atPathT: args.pathT, hpRatio: args.hpRatio })
       .build();
-    return mountFixtureStory(args, fixture, { focusEnemyId: fixture.initialState.enemies[0]!.id });
+    return mountFixtureStory(args, fixture, {
+      focus: { enemyId: fixture.initialState.enemies[0]!.id },
+    });
   },
 };
 export default meta;

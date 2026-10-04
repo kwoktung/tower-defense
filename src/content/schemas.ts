@@ -77,6 +77,24 @@ export const LevelDefSchema = z
   });
 
 export const UnitCatalogSchema = z.object({
+  towers: z.record(
+    z.string().min(1),
+    z.object({
+      /** Shown on the HUD build button. */
+      name: z.string().min(1),
+      cost: z.int().nonnegative(),
+      /** World units. */
+      range: z.number().positive(),
+      damage: z.number().positive(),
+      cooldownSec: z.number().positive(),
+      /** World units per second. */
+      projectileSpeed: z.number().positive(),
+      attack: z.discriminatedUnion('mode', [
+        z.object({ mode: z.literal('single') }),
+        z.object({ mode: z.literal('splash'), radius: z.number().positive() }),
+      ]),
+    }),
+  ),
   enemies: z.record(
     z.string().min(1),
     z.object({
@@ -92,6 +110,7 @@ export const UnitCatalogSchema = z.object({
 export type LevelDef = z.infer<typeof LevelDefSchema>;
 export type UnitCatalog = z.infer<typeof UnitCatalogSchema>;
 export type EnemyDef = UnitCatalog['enemies'][string];
+export type TowerDef = UnitCatalog['towers'][string];
 export type WaveDef = LevelDef['waves'][number];
 export type SlotDef = LevelDef['slots'][number];
 export type Cell = z.infer<typeof CellSchema>;
