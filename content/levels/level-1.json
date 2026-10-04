@@ -1,0 +1,28 @@
+{
+  "id": "level-1",
+  "grid": { "cols": 15, "rows": 10, "tileSize": 64 },
+  "path": [
+    { "col": -1, "row": 1 },
+    { "col": 11, "row": 1 },
+    { "col": 11, "row": 4 },
+    { "col": 3, "row": 4 },
+    { "col": 3, "row": 7 },
+    { "col": 15, "row": 7 }
+  ],
+  "slots": [
+    { "id": "slot-1", "col": 2, "row": 2 },
+    { "id": "slot-2", "col": 5, "row": 2 },
+    { "id": "slot-3", "col": 8, "row": 2 },
+    { "id": "slot-4", "col": 12, "row": 3 },
+    { "id": "slot-5", "col": 9, "row": 3 },
+    { "id": "slot-6", "col": 5, "row": 5 },
+    { "id": "slot-7", "col": 8, "row": 5 },
+    { "id": "slot-8", "col": 2, "row": 6 },
+    { "id": "slot-9", "col": 5, "row": 8 },
+    { "id": "slot-10", "col": 8, "row": 8 },
+    { "id": "slot-11", "col": 11, "row": 8 },
+    { "id": "slot-12", "col": 13, "row": 6 }
+  ],
+  "startGold": 120,
+  "startLives": 10
+}

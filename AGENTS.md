@@ -14,15 +14,19 @@ Single-context: one `CONTEXT.md` + `docs/adr/` at the repo root. See `docs/agent
 
 ## Development commands
 
-| Command               | What it does                                                  |
-| --------------------- | ------------------------------------------------------------- |
-| `pnpm dev`            | Run the game at <http://localhost:5173>                       |
-| `pnpm test`           | Run Vitest (Simulation and services tests)                    |
-| `pnpm typecheck`      | TypeScript type check                                         |
-| `pnpm lint`           | ESLint, including the layering rules from ADR-0001            |
-| `pnpm format`         | Prettier                                                      |
-| `pnpm storybook`      | Storybook at <http://localhost:6006>                          |
-| `pnpm shots [filter]` | Screenshot every story into `.shots/` — provided by ticket 02 |
+| Command                              | What it does                                                                                                                                                                      |
+| ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm dev`                           | Run the game at <http://localhost:5173>. URL params: `?skin=<id>`, `?debug`, `?level=<id>`                                                                                        |
+| `pnpm test`                          | All tests: `unit` (Simulation, services) and `storybook` (every story renders, no `console.error`)                                                                                |
+| `pnpm test:unit`                     | Unit tests only (fast, Node)                                                                                                                                                      |
+| `pnpm test:stories`                  | Story smoke tests only (headless Chromium)                                                                                                                                        |
+| `pnpm typecheck`                     | TypeScript type check                                                                                                                                                             |
+| `pnpm lint`                          | ESLint, including the layering rules from ADR-0001                                                                                                                                |
+| `pnpm format`                        | Prettier                                                                                                                                                                          |
+| `pnpm storybook`                     | Storybook at <http://localhost:6006>                                                                                                                                              |
+| `pnpm shots [filter] [--skip-build]` | Build Storybook and screenshot every story (or those whose id/title contains `filter`) into `.shots/<story-id>.png` and `.shots/<story-id>--debug.png`. Prints the files written. |
+
+In game, press `D` to toggle the Debug overlay.
 
 ## Working conventions
 

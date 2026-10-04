@@ -12,18 +12,27 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "test:unit": "vitest run --project unit",
+    "test:stories": "vitest run --project storybook",
+    "shots": "node scripts/shots.ts"
   },
   "dependencies": {
-    "phaser": "^4.2.1"
+    "phaser": "^4.2.1",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@storybook/addon-docs": "^10.6.1",
+    "@storybook/addon-vitest": "^10.6.1",
     "@storybook/html-vite": "^10.6.1",
+    "@types/node": "^26.6.4",
+    "@vitest/browser": "^5.0.3",
+    "@vitest/browser-playwright": "^5.0.3",
     "eslint": "^10.12.0",
     "eslint-config-prettier": "^10.1.8",
     "globals": "^17.13.0",
+    "playwright": "^1.63.0",
     "prettier": "^3.9.9",
     "storybook": "^10.6.1",
     "typescript": "~6.0.3",
