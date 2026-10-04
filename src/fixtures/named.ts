@@ -50,6 +50,21 @@ export const fixtures = {
       .withEnemies('normal', 3, { atPathT: 2380, spacing: 40 })
       .build(),
 
+  /** Mid last Wave: the fast group still spawning, a defended line, lives running low. */
+  finalWave: (): Fixture =>
+    scenario()
+      .withGold(40)
+      .withLives(4)
+      .withTower('basic', 'slot-2')
+      .withTower('basic', 'slot-6')
+      .withTower('splash', 'slot-5')
+      .withTower('splash', 'slot-10')
+      .atWave(2)
+      .withEnemies('normal', 6, { atPathT: 1700, spacing: 40, hpRatio: 0.6 })
+      .withEnemies('fast', 4, { atPathT: 900, spacing: 30 })
+      .withSpawning({ groupIndex: 1, spawnedInGroup: 4, cooldownTicks: 10 })
+      .build(),
+
   /** The game just won: the last Wave cleared with towers still standing. */
   won: (): Fixture =>
     scenario()

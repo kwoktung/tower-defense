@@ -2,23 +2,58 @@ import type { Meta, StoryObj } from '@storybook/html-vite';
 import { fixtures, type FixtureName } from '../fixtures/named';
 import { baseArgs, baseArgTypes, type BaseStoryArgs } from '../storybook/args';
 import { mountFixtureStory } from '../storybook/fixture-story';
+import type { ShotsParameters } from '../storybook/shots';
 
 interface ScenarioArgs extends BaseStoryArgs {
   fixture: FixtureName;
+  running: boolean;
+  speed: number;
+  advanceTicks: number;
 }
 
+/** One story per named Fixture. Static by default; turn on `running` to watch it play out. */
 const meta: Meta<ScenarioArgs> = {
   title: 'Scenarios',
-  args: baseArgs,
-  argTypes: { ...baseArgTypes, fixture: { control: false } },
-  render: (args) => mountFixtureStory(args, fixtures[args.fixture](), { hud: true }),
+  args: { ...baseArgs, running: false, speed: 1, advanceTicks: 0 },
+  argTypes: {
+    ...baseArgTypes,
+    fixture: { control: false },
+    running: { control: 'boolean', description: 'Keep the Simulation running' },
+    speed: { control: { type: 'range', min: 0.25, max: 4, step: 0.25 } },
+    advanceTicks: {
+      control: { type: 'number', min: 0, step: 10 },
+      description: 'Fast-forward before the first frame (60 ticks = 1 s)',
+    },
+  },
+  render: (args) =>
+    mountFixtureStory(args, fixtures[args.fixture](), {
+      hud: true,
+      running: args.running,
+      speed: Number(args.speed),
+      advanceTicks: Number(args.advanceTicks),
+    }),
 };
 export default meta;
 
 type Story = StoryObj<ScenarioArgs>;
 
+const timeline = (...ticks: number[]): { parameters: { shots: ShotsParameters } } => ({
+  parameters: { shots: { ticks } },
+});
+
+export const EmptyMap: Story = { args: { fixture: 'emptyMap' } };
 export const OneOfEachEnemy: Story = { args: { fixture: 'oneOfEachEnemy' } };
-export const BasicTowerFiring: Story = { args: { fixture: 'basicTowerFiring' } };
-export const SplashHittingCluster: Story = { args: { fixture: 'splashHittingCluster' } };
 export const OneOfEachTower: Story = { args: { fixture: 'oneOfEachTower' } };
-export const EnemyLeaking: Story = { args: { fixture: 'enemyLeaking' } };
+export const BasicTowerFiring: Story = {
+  args: { fixture: 'basicTowerFiring' },
+  ...timeline(0, 10, 40, 90),
+};
+export const SplashHittingCluster: Story = {
+  args: { fixture: 'splashHittingCluster' },
+  ...timeline(0, 8, 30, 120),
+};
+export const EnemyLeaking: Story = { args: { fixture: 'enemyLeaking' }, ...timeline(0, 50, 100) };
+export const LowGold: Story = { args: { fixture: 'lowGold' } };
+export const FinalWave: Story = { args: { fixture: 'finalWave' }, ...timeline(0, 60, 180) };
+export const Won: Story = { args: { fixture: 'won' } };
+export const Lost: Story = { args: { fixture: 'lost' } };

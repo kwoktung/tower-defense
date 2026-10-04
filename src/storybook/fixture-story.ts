@@ -1,4 +1,5 @@
 import type { Fixture } from '../fixtures/scenario';
+import { createFixedStep } from '../game-loop';
 import { createDebugOverlay } from '../render/debug-overlay';
 import { createHud, hudModelOf } from '../render/hud';
 import { WorldRenderer } from '../render/world-renderer';
@@ -25,6 +26,12 @@ export interface FixtureStoryOptions {
    * picture is stable for Shots.
    */
   effects?: SimEvent[];
+  /** Fast-forward this many ticks before the first frame (events from the skipped ticks are not shown). */
+  advanceTicks?: number;
+  /** Keep the Simulation running at a fixed step after the first frame. */
+  running?: boolean;
+  /** Game-time multiplier while running. */
+  speed?: number;
 }
 
 /** Renders one Fixture moment through the same Map, WorldRenderer, Debug overlay and HUD the game uses. */
@@ -34,6 +41,7 @@ export function mountFixtureStory(
   options: FixtureStoryOptions = {},
 ): HTMLElement {
   const { hud = false, hoverSlot, focus, zoom = 3, effects = [] } = options;
+  const { advanceTicks = 0, running = false, speed = 1 } = options;
   const selectedTower =
     options.selectedTower === undefined
       ? (Object.keys(fixture.units.towers)[0] ?? null)
@@ -45,20 +53,38 @@ export function mountFixtureStory(
     build: ({ scene, skin, debug }) => {
       const { level, units } = fixture;
       const sim = createSimulation(fixture);
+      if (advanceTicks > 0) sim.advance(advanceTicks);
       const map = skin.createMap(scene, level);
       if (hoverSlot) {
         const range = selectedTower ? (units.towers[selectedTower]?.range ?? null) : null;
         map.setHover({ slotId: hoverSlot, rangePreview: range });
       }
-      new WorldRenderer(scene, skin, level).render(sim.state, effects);
-      if (effects.length) scene.tweens.pauseAll();
-      createDebugOverlay(scene, level, units, debug).sync(sim.state);
-      if (hud) {
-        createHud(scene, skin.theme, {
-          onSelectTower: () => {},
-          onStartNextWave: () => {},
-          onRestart: () => {},
-        }).update(hudModelOf(sim, selectedTower));
+      const world = new WorldRenderer(scene, skin, level);
+      world.render(sim.state, effects);
+      if (effects.length) {
+        // Freeze tweens and timers so flashes and pulses stay at their first frame.
+        scene.tweens.pauseAll();
+        scene.time.paused = true;
+      }
+      const overlay = createDebugOverlay(scene, level, units, debug);
+      overlay.sync(sim.state);
+      const hudView = hud
+        ? createHud(scene, skin.theme, {
+            onSelectTower: () => {},
+            onStartNextWave: () => sim.startNextWave(),
+            onRestart: () => {},
+          })
+        : null;
+      hudView?.update(hudModelOf(sim, selectedTower));
+
+      if (running) {
+        const fixedStep = createFixedStep();
+        scene.events.on('update', (_time: number, deltaMs: number) => {
+          const events = sim.advance(fixedStep.consume(deltaMs, speed));
+          world.render(sim.state, events);
+          overlay.sync(sim.state);
+          hudView?.update(hudModelOf(sim, selectedTower));
+        });
       }
       const target = focus && focusPoint(fixture, focus);
       if (target) {

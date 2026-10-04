@@ -1,6 +1,6 @@
 # Spec: 塔防 MVP 骨架
 
-Status: ready-for-agent
+Status: done
 
 ## Problem Statement
 

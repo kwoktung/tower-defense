@@ -1,6 +1,7 @@
 /// <reference types="node" />
 /**
- * Screenshots every story, with and without the Debug overlay, into .shots/.
+ * Screenshots every story, with and without the Debug overlay, into .shots/. Stories whose
+ * `parameters.shots.ticks` lists tick counts are also shot fast-forwarded by each of them.
  *
  *   pnpm shots                 build Storybook, shoot every story
  *   pnpm shots map             only stories whose id or title contains "map"
@@ -62,22 +63,36 @@ const page = await browser.newPage({ viewport: { width: 960, height: 640 } });
 const written: string[] = [];
 const failures: string[] = [];
 
+/** Loads one story variant, waits for its first frame and screenshots the canvas. */
+async function shoot(storyId: string, args: Record<string, string>, suffix: string) {
+  const file = path.join(OUT_DIR, `${storyId}${suffix}.png`);
+  const argString = Object.entries(args)
+    .map(([k, v]) => `${k}:${v}`)
+    .join(';');
+  try {
+    await page.goto(
+      `http://localhost:${port}/iframe.html?id=${storyId}&viewMode=story&args=${argString}`,
+    );
+    await page.waitForFunction(() => window.__STORY_READY__ === true, null, {
+      timeout: READY_TIMEOUT_MS,
+    });
+    const canvas = page.locator('canvas').first();
+    await ((await canvas.count()) ? canvas : page).screenshot({ path: file });
+    written.push(path.relative(ROOT, file));
+  } catch (error) {
+    failures.push(`${storyId}${suffix}: ${(error as Error).message}`);
+  }
+}
+
 try {
   for (const story of stories) {
-    for (const debug of [false, true]) {
-      const file = path.join(OUT_DIR, `${story.id}${debug ? '--debug' : ''}.png`);
-      const url = `http://localhost:${port}/iframe.html?id=${story.id}&viewMode=story&args=debug:!${debug}`;
-      try {
-        await page.goto(url);
-        await page.waitForFunction(() => window.__STORY_READY__ === true, null, {
-          timeout: READY_TIMEOUT_MS,
-        });
-        const canvas = page.locator('canvas').first();
-        await ((await canvas.count()) ? canvas : page).screenshot({ path: file });
-        written.push(path.relative(ROOT, file));
-      } catch (error) {
-        failures.push(`${story.id}${debug ? ' (debug)' : ''}: ${(error as Error).message}`);
-      }
+    await shoot(story.id, { debug: '!false' }, '');
+    // Stories publish `parameters.shots` once loaded; ticks add fast-forwarded variants.
+    const ticks = await page.evaluate(() => window.__STORY_SHOTS__?.ticks ?? []);
+    await shoot(story.id, { debug: '!true' }, '--debug');
+    for (const t of ticks.filter((t) => t > 0)) {
+      await shoot(story.id, { debug: '!false', advanceTicks: String(t) }, `--t${t}`);
+      await shoot(story.id, { debug: '!true', advanceTicks: String(t) }, `--debug--t${t}`);
     }
   }
 } finally {

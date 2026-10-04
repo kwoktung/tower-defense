@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/html-vite';
 import { fixtures } from '../fixtures/named';
-import { scenario } from '../fixtures/scenario';
+import { scenario, type Fixture } from '../fixtures/scenario';
+import type { SimEvent } from '../sim/types';
 import { baseArgs, baseArgTypes, towerKinds, type BaseStoryArgs } from '../storybook/args';
 import { mountFixtureStory } from '../storybook/fixture-story';
 
@@ -47,16 +48,35 @@ export const AllKinds: Story = {
     mountFixtureStory(args, fixtures.oneOfEachTower(), { focus: { slotId: 'slot-2' }, zoom: 2 }),
 };
 
-/** Mid-shot: the projectile is in flight toward the leading enemy. */
+/** Mid-shot: the projectile is in flight, and the tower's fire pulse is frozen at its peak. */
 export const Firing: Story = {
-  render: (args) =>
-    mountFixtureStory(args, fixtures.basicTowerFiring(), { focus: { slotId: 'slot-3' }, zoom: 2 }),
+  render: (args) => {
+    const fixture = fixtures.basicTowerFiring();
+    return mountFixtureStory(args, fixture, {
+      focus: { slotId: 'slot-3' },
+      zoom: 2,
+      effects: firedEvents(fixture),
+    });
+  },
 };
 
 export const SplashFiring: Story = {
-  render: (args) =>
-    mountFixtureStory(args, fixtures.splashHittingCluster(), {
+  render: (args) => {
+    const fixture = fixtures.splashHittingCluster();
+    return mountFixtureStory(args, fixture, {
       focus: { slotId: 'slot-3' },
       zoom: 2,
-    }),
+      effects: firedEvents(fixture),
+    });
+  },
 };
+
+/** A towerFired event for each projectile in flight, to show the fire pulse. */
+function firedEvents({ initialState }: Fixture): SimEvent[] {
+  return initialState.projectiles.map((p) => ({
+    type: 'towerFired',
+    towerId: p.towerId,
+    projectileId: p.id,
+    targetId: p.targetId ?? 0,
+  }));
+}

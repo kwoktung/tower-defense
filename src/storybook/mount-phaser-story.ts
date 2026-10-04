@@ -36,8 +36,14 @@ export function destroyMountedGame(): void {
   game.destroy(true);
 }
 
-/** Mounts a 960×640 Phaser game for a story and returns the element to render. */
-export function mountPhaserStory({ skin: skinId, debug, build }: MountOptions): HTMLElement {
+/**
+ * Mounts a 960×640 Phaser game running `scenes` and returns the element to render.
+ * `__STORY_READY__` turns true after the first frame rendered once `isReady(game)` holds.
+ */
+export function mountPhaserGame(
+  scenes: Phaser.Types.Scenes.SceneType[],
+  isReady: (game: Phaser.Game) => boolean = () => true,
+): HTMLElement {
   destroyMountedGame();
   window.__STORY_READY__ = false;
 
@@ -45,7 +51,21 @@ export function mountPhaserStory({ skin: skinId, debug, build }: MountOptions): 
   host.style.width = `${GAME_WIDTH}px`;
   host.style.height = `${GAME_HEIGHT}px`;
 
+  const game = new Phaser.Game(createGameConfig(host, scenes, { scale: 'none' }));
+  const onRender = () => {
+    if (!isReady(game)) return;
+    game.events.off(Phaser.Core.Events.POST_RENDER, onRender);
+    window.__STORY_READY__ = true;
+  };
+  game.events.on(Phaser.Core.Events.POST_RENDER, onRender);
+  mounted = game;
+  return host;
+}
+
+/** Mounts a single-scene story whose content `build` draws with the chosen Skin. */
+export function mountPhaserStory({ skin: skinId, debug, build }: MountOptions): HTMLElement {
   const skin = resolveSkin(skinId);
+  let built = false;
 
   class StoryScene extends Phaser.Scene {
     preload() {
@@ -53,12 +73,9 @@ export function mountPhaserStory({ skin: skinId, debug, build }: MountOptions): 
     }
     create() {
       build({ scene: this, skin, debug });
-      this.game.events.once(Phaser.Core.Events.POST_RENDER, () => {
-        window.__STORY_READY__ = true;
-      });
+      built = true;
     }
   }
 
-  mounted = new Phaser.Game(createGameConfig(host, [StoryScene], { scale: 'none' }));
-  return host;
+  return mountPhaserGame([StoryScene], () => built);
 }

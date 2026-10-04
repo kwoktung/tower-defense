@@ -1,7 +1,7 @@
 import { loadBundledLevel, loadBundledUnits } from '../content/bundled';
 import type { LevelDef, UnitCatalog } from '../content/schemas';
 import { createInitialState, createSimulation, type SimulationInput } from '../sim/simulation';
-import type { Outcome, SimState } from '../sim/types';
+import type { Outcome, SimState, SpawnCursor } from '../sim/types';
 
 /** One moment of play, ready for `createSimulation(fixture)` in tests or to render in a story. */
 export type Fixture = Required<SimulationInput>;
@@ -70,6 +70,12 @@ export class ScenarioBuilder {
       cooldownTicks: 0,
       targetId: null,
     });
+    return this;
+  }
+
+  /** Marks the current Wave as still spawning from the given cursor. */
+  withSpawning(cursor: SpawnCursor): this {
+    this.state.wave.spawning = { ...cursor };
     return this;
   }
 

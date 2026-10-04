@@ -33,14 +33,17 @@ Use these terms in code, tickets, commits and reviews. Avoid the listed synonyms
 - **WorldRenderer** — Diffs each snapshot by entity id to create, sync and destroy EntityViews, and forwards SimEvents to them.
 - **Theme token** — A named colour or font provided by the Skin; the HUD reads only these.
 - **HUD** — The Phaser-drawn overlay scene showing gold, lives, wave and the build / next-wave buttons.
+- **Effect** — A one-off visual for a SimEvent (fire pulse, hit flash, kill ring, splash ring). Effects never change the Simulation.
+- **UI state** — Player choices that are not game state, such as the selected tower kind; shared by the Game and HUD scenes, never stored in SimState.
 - **Debug overlay** — A skin-independent layer showing ranges, ids, hp, path waypoints and Slot coordinates. Toggled with `D` in game or the `debug` control in Storybook.
 
 ## Visual workflow
 
 - **Fixture** — A named, builder-made SimState (plus level and catalog) describing one moment of play. Shared by tests and stories.
-- **Scenario** — A story that renders a Fixture, optionally advancing or running it.
+- **Scenario** — A story that renders a Fixture, optionally advancing (`advanceTicks`) or running it.
 - **Story** — A Storybook entry rendering one entity, map, HUD state, Scenario or the playable game.
 - **Shots** — PNG screenshots of every story (with and without the Debug overlay), produced by one command so an agent can inspect them.
+- **Shot timeline** — Extra Shots of one Scenario fast-forwarded by several tick counts (`parameters.shots.ticks`).
 
 ## Services
 
