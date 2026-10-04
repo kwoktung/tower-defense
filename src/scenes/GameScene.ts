@@ -6,6 +6,8 @@ import type { MapView, Skin } from '../render/skin';
 import { WorldRenderer } from '../render/world-renderer';
 import { slotAt } from '../sim/path';
 import { createSimulation, type Simulation } from '../sim/simulation';
+import type { SimEvent } from '../sim/types';
+import type { ProgressStore } from '../services/types';
 import type { HudSceneData } from './HudScene';
 import { SceneKeys } from './keys';
 import type { UiState } from './ui-state';
@@ -13,6 +15,7 @@ import type { UiState } from './ui-state';
 export interface GameSceneData {
   level: LevelDef;
   units: UnitCatalog;
+  progress: ProgressStore;
   skin: Skin;
   debug: boolean;
   seed?: number;
@@ -24,6 +27,7 @@ export class GameScene extends Phaser.Scene {
   private mapView!: MapView;
   private world!: WorldRenderer;
   private debugOverlay!: DebugOverlay;
+  private progress!: ProgressStore;
   private fixedStep = createFixedStep();
 
   constructor() {
@@ -31,7 +35,8 @@ export class GameScene extends Phaser.Scene {
   }
 
   create(data: GameSceneData) {
-    const { level, units, skin, debug, seed = Date.now() } = data;
+    const { level, units, progress, skin, debug, seed = Date.now() } = data;
+    this.progress = progress;
     this.sim = createSimulation({ level, units, seed });
     this.fixedStep = createFixedStep();
     this.mapView = skin.createMap(this, level);
@@ -77,5 +82,12 @@ export class GameScene extends Phaser.Scene {
     const events = this.sim.advance(this.fixedStep.consume(deltaMs));
     this.world.render(this.sim.state, events);
     this.debugOverlay.sync(this.sim.state);
+    for (const event of events) if (event.type === 'gameEnded') this.saveResult(event);
+  }
+
+  private saveResult({ outcome }: Extract<SimEvent, { type: 'gameEnded' }>) {
+    this.progress
+      .save(this.sim.level.id, { bestOutcome: outcome, bestLivesLeft: this.sim.state.lives })
+      .catch((error: unknown) => console.warn('Could not save progress', error));
   }
 }

@@ -26,12 +26,18 @@ export class BootScene extends Phaser.Scene {
   }
 
   async create() {
-    const { levels } = this.options.services;
+    const { levels, progress } = this.options.services;
     const [level, units] = await Promise.all([
       levels.getLevel(this.options.levelId),
       levels.getUnitCatalog(),
     ]);
-    const data: GameSceneData = { level, units, skin: this.skin, debug: this.options.debug };
+    const data: GameSceneData = {
+      level,
+      units,
+      progress,
+      skin: this.skin,
+      debug: this.options.debug,
+    };
     this.scene.start(SceneKeys.Game, data);
   }
 }
