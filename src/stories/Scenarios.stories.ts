@@ -19,4 +19,6 @@ type Story = StoryObj<ScenarioArgs>;
 
 export const OneOfEachEnemy: Story = { args: { fixture: 'oneOfEachEnemy' } };
 export const BasicTowerFiring: Story = { args: { fixture: 'basicTowerFiring' } };
+export const SplashHittingCluster: Story = { args: { fixture: 'splashHittingCluster' } };
+export const OneOfEachTower: Story = { args: { fixture: 'oneOfEachTower' } };
 export const EnemyLeaking: Story = { args: { fixture: 'enemyLeaking' } };

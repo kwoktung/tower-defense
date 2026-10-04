@@ -424,3 +424,60 @@ describe('winning', () => {
     expect(sim.state.outcome).toBe('playing');
   });
 });
+
+describe('splash', () => {
+  /** A splash tower on slot-3 with a leader at pathT 600 and others `spacing` behind it on the same straight segment. */
+  const splashAt = (spacing: number, count = 2) =>
+    createSimulation(
+      scenario()
+        .atWave(0)
+        .withTower('splash', SLOT_3)
+        .withEnemies('normal', count, { atPathT: 600, spacing })
+        .build(),
+    );
+  const hitUntilImpact = (sim: ReturnType<typeof createSimulation>) => {
+    const events: SimEvent[] = [];
+    for (let i = 0; i < 60 && !ofType(events, 'projectileHit').length; i++)
+      events.push(...sim.advance(1));
+    return events;
+  };
+
+  it('damages every enemy within the radius of the impact, each by the full damage', () => {
+    const sim = splashAt(20, 3);
+    const ids = sim.state.enemies.map((e) => e.id);
+
+    const events = hitUntilImpact(sim);
+
+    expect(ofType(events, 'projectileHit')[0]).toMatchObject({ splashRadius: 48 });
+    expect(ofType(events, 'enemyDamaged')).toEqual(
+      ids.map((id) => ({ type: 'enemyDamaged', id, amount: 8 })),
+    );
+  });
+
+  it('includes an enemy just inside the radius and leaves one just outside untouched', () => {
+    const inside = splashAt(47.5);
+    const outside = splashAt(48.5);
+
+    expect(ofType(hitUntilImpact(inside), 'enemyDamaged')).toHaveLength(2);
+    expect(ofType(hitUntilImpact(outside), 'enemyDamaged')).toHaveLength(1);
+  });
+
+  it("still explodes at a vanished target's last position, damaging enemies near it", () => {
+    const fired = splashAt(20);
+    fired.advance(1);
+    const [leader, follower] = fired.state.enemies;
+    // Remove the target mid-flight, as if another tower had just killed it.
+    const sim = createSimulation({
+      ...scenario().build(),
+      initialState: { ...structuredClone(fired.state), enemies: [structuredClone(follower!)] },
+    });
+
+    const events = hitUntilImpact(sim);
+
+    expect(sim.state.enemies.map((e) => e.id)).not.toContain(leader!.id);
+    expect(ofType(events, 'projectileHit')[0]).toMatchObject({ splashRadius: 48 });
+    expect(ofType(events, 'enemyDamaged')).toEqual([
+      { type: 'enemyDamaged', id: follower!.id, amount: 8 },
+    ]);
+  });
+});

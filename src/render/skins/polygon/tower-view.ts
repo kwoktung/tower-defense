@@ -20,6 +20,13 @@ const SHAPES: Record<string, TowerShape> = {
       [-18, 18],
     ],
   },
+  splash: {
+    color: palette.towerSplash,
+    points: Array.from({ length: 6 }, (_, i): [number, number] => {
+      const a = (i / 6) * Math.PI * 2 + Math.PI / 6;
+      return [Math.cos(a) * 21, Math.sin(a) * 21];
+    }),
+  },
 };
 
 /** Unknown kinds still render, so new content shows up before its skin entry exists. */

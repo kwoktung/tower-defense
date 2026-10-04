@@ -10,6 +10,18 @@
       "attack": {
         "mode": "single"
       }
+    },
+    "splash": {
+      "name": "溅射塔",
+      "cost": 80,
+      "range": 128,
+      "damage": 8,
+      "cooldownSec": 1.2,
+      "projectileSpeed": 320,
+      "attack": {
+        "mode": "splash",
+        "radius": 48
+      }
     }
   },
   "enemies": {

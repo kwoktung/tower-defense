@@ -4,6 +4,7 @@ import { createHud, hudModelOf } from '../render/hud';
 import { WorldRenderer } from '../render/world-renderer';
 import { buildPath, cellCenter, poseAt, type Point } from '../sim/path';
 import { createSimulation } from '../sim/simulation';
+import type { SimEvent } from '../sim/types';
 import type { BaseStoryArgs } from './args';
 import { mountPhaserStory } from './mount-phaser-story';
 
@@ -19,6 +20,11 @@ export interface FixtureStoryOptions {
   /** Zoom the camera onto an entity (Entities stories). */
   focus?: StoryFocus;
   zoom?: number;
+  /**
+   * One-off effects to show (e.g. a splash explosion), frozen at their first frame so the
+   * picture is stable for Shots.
+   */
+  effects?: SimEvent[];
 }
 
 /** Renders one Fixture moment through the same Map, WorldRenderer, Debug overlay and HUD the game uses. */
@@ -27,7 +33,7 @@ export function mountFixtureStory(
   fixture: Fixture,
   options: FixtureStoryOptions = {},
 ): HTMLElement {
-  const { hud = false, hoverSlot, focus, zoom = 3 } = options;
+  const { hud = false, hoverSlot, focus, zoom = 3, effects = [] } = options;
   const selectedTower =
     options.selectedTower === undefined
       ? (Object.keys(fixture.units.towers)[0] ?? null)
@@ -44,7 +50,8 @@ export function mountFixtureStory(
         const range = selectedTower ? (units.towers[selectedTower]?.range ?? null) : null;
         map.setHover({ slotId: hoverSlot, rangePreview: range });
       }
-      new WorldRenderer(scene, skin, level).render(sim.state);
+      new WorldRenderer(scene, skin, level).render(sim.state, effects);
+      if (effects.length) scene.tweens.pauseAll();
       createDebugOverlay(scene, level, units, debug).sync(sim.state);
       if (hud) {
         createHud(scene, skin.theme, {

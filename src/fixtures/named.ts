@@ -28,6 +28,20 @@ export const fixtures = {
       .advance(4)
       .build(),
 
+  /** A splash tower's shot in flight toward a tight cluster of enemies. */
+  splashHittingCluster: (): Fixture =>
+    scenario()
+      .atWave(1)
+      .withTower('splash', 'slot-3')
+      .withEnemies('normal', 3, { atPathT: 600, spacing: 18 })
+      .withEnemies('fast', 2, { atPathT: 548, spacing: 16 })
+      .advance(6)
+      .build(),
+
+  /** One of each tower kind, idle. */
+  oneOfEachTower: (): Fixture =>
+    scenario().withTower('basic', 'slot-2').withTower('splash', 'slot-3').build(),
+
   /** A group of enemies about to reach the end of the Path. */
   enemyLeaking: (): Fixture =>
     scenario()

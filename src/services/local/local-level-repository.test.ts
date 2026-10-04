@@ -28,7 +28,7 @@ describe('local LevelRepository', () => {
     expect(level.slots).toHaveLength(12);
     expect(level.waves).toHaveLength(3);
     expect(Object.keys(catalog.enemies)).toEqual(['normal', 'fast']);
-    expect(Object.keys(catalog.towers)).toEqual(['basic']);
+    expect(Object.keys(catalog.towers)).toEqual(['basic', 'splash']);
   });
 
   it('rejects an unknown level id', async () => {

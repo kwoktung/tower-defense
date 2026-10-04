@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/html-vite';
 import { scenario } from '../fixtures/scenario';
-import { baseArgs, baseArgTypes, type BaseStoryArgs } from '../storybook/args';
+import { baseArgs, baseArgTypes, enemyKinds, type BaseStoryArgs } from '../storybook/args';
 import { mountFixtureStory } from '../storybook/fixture-story';
 
 interface EnemyArgs extends BaseStoryArgs {
@@ -15,7 +15,7 @@ const meta: Meta<EnemyArgs> = {
   args: { ...baseArgs, kind: 'normal', hpRatio: 1, pathT: 400 },
   argTypes: {
     ...baseArgTypes,
-    kind: { control: 'select', options: ['normal', 'fast'] },
+    kind: { control: 'select', options: enemyKinds },
     hpRatio: { control: { type: 'range', min: 0, max: 1, step: 0.05 } },
     pathT: { control: { type: 'range', min: 0, max: 2432, step: 8 } },
   },

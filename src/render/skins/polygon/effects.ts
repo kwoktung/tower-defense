@@ -4,6 +4,7 @@ import { colorNumber } from '../../skin';
 import { palette } from './palette';
 
 const KILL_MS = 250;
+const SPLASH_MS = 200;
 
 /** An expanding, fading ring at the given point. */
 function ring(scene: Phaser.Scene, x: number, y: number, color: string, from: number, to: number) {
@@ -26,8 +27,29 @@ function ring(scene: Phaser.Scene, x: number, y: number, color: string, from: nu
   });
 }
 
+/**
+ * A translucent ring at the splash radius that fades out. The fill stays faint so the red
+ * enemies underneath don't read as orange.
+ */
+function splash(scene: Phaser.Scene, x: number, y: number, radius: number) {
+  const g = scene.add.graphics().setDepth(18).setPosition(x, y);
+  g.fillStyle(colorNumber(palette.splash), 0.08);
+  g.fillCircle(0, 0, radius);
+  g.lineStyle(3, colorNumber(palette.splash), 0.85);
+  g.strokeCircle(0, 0, radius);
+  scene.tweens.add({
+    targets: g,
+    alpha: 0,
+    duration: SPLASH_MS,
+    ease: 'Quad.easeIn',
+    onComplete: () => g.destroy(),
+  });
+}
+
 export function playEffect(scene: Phaser.Scene, event: SimEvent): void {
-  if (event.type === 'enemyKilled') {
+  if (event.type === 'projectileHit' && event.splashRadius) {
+    splash(scene, event.x, event.y, event.splashRadius);
+  } else if (event.type === 'enemyKilled') {
     const color = event.kind === 'fast' ? palette.enemyFast : palette.enemyNormal;
     ring(scene, event.x, event.y, color, 6, 22);
   }

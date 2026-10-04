@@ -1,5 +1,10 @@
 import type { ArgTypes } from '@storybook/html-vite';
+import { loadBundledUnits } from '../content/bundled';
 import { DEFAULT_SKIN_ID, skinIds } from '../render/skins';
+
+/** Kinds from the Unit catalog, so new content appears in the Controls without editing stories. */
+export const towerKinds = Object.keys(loadBundledUnits().towers);
+export const enemyKinds = Object.keys(loadBundledUnits().enemies);
 
 /** Controls every story has. */
 export interface BaseStoryArgs {
