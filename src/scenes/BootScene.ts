@@ -12,7 +12,7 @@ export interface BootOptions {
   debug: boolean;
 }
 
-/** Wires services and the chosen Skin, loads the level, then starts the Game scene. */
+/** Wires services and the chosen Skin, loads content, then starts the Game scene. */
 export class BootScene extends Phaser.Scene {
   private skin!: Skin;
 
@@ -26,8 +26,12 @@ export class BootScene extends Phaser.Scene {
   }
 
   async create() {
-    const level = await this.options.services.levels.getLevel(this.options.levelId);
-    const data: GameSceneData = { level, skin: this.skin, debug: this.options.debug };
+    const { levels } = this.options.services;
+    const [level, units] = await Promise.all([
+      levels.getLevel(this.options.levelId),
+      levels.getUnitCatalog(),
+    ]);
+    const data: GameSceneData = { level, units, skin: this.skin, debug: this.options.debug };
     this.scene.start(SceneKeys.Game, data);
   }
 }

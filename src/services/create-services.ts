@@ -1,4 +1,4 @@
-import { bundledLevelSources } from '../content/bundled';
+import { bundledLevelSources, bundledUnitsSource } from '../content/bundled';
 import { createLocalLevelRepository } from './local/local-level-repository';
 import type { Services, ServicesEnv } from './types';
 
@@ -6,6 +6,11 @@ import type { Services, ServicesEnv } from './types';
 export function createServices(env: ServicesEnv): Services {
   switch (env.kind) {
     case 'local':
-      return { levels: createLocalLevelRepository(bundledLevelSources) };
+      return {
+        levels: createLocalLevelRepository({
+          levels: bundledLevelSources,
+          units: bundledUnitsSource,
+        }),
+      };
   }
 }

@@ -26,7 +26,7 @@ Single-context: one `CONTEXT.md` + `docs/adr/` at the repo root. See `docs/agent
 | `pnpm storybook`                     | Storybook at <http://localhost:6006>                                                                                                                                              |
 | `pnpm shots [filter] [--skip-build]` | Build Storybook and screenshot every story (or those whose id/title contains `filter`) into `.shots/<story-id>.png` and `.shots/<story-id>--debug.png`. Prints the files written. |
 
-In game, press `D` to toggle the Debug overlay.
+In game, press `D` to toggle the Debug overlay. In dev builds the running game is on `window.__GAME__`; e.g. `__GAME__.scene.getScene('Game').sim.state` reads the live SimState from DevTools or the Chrome MCP tools.
 
 ## Working conventions
 

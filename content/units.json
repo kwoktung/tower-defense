@@ -1,0 +1,6 @@
+{
+  "enemies": {
+    "normal": { "hp": 40, "speed": 64, "reward": 5, "leakDamage": 1 },
+    "fast": { "hp": 20, "speed": 128, "reward": 4, "leakDamage": 1 }
+  }
+}

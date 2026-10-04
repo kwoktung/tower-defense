@@ -1,0 +1,20 @@
+/** Every colour the Polygon skin uses. Enemies are reds; towers (later) are cool tones. */
+export const palette = {
+  background: '#1e2430',
+  path: '#c9b28a',
+  slot: '#3d5a4a',
+  slotHover: '#6fae8a',
+  enemyNormal: '#dc2626',
+  enemyFast: '#fb7185',
+  enemyUnknown: '#991b1b',
+  hpBar: '#22c55e',
+  hpBarEmpty: '#374151',
+  text: '#f8fafc',
+  textMuted: '#94a3b8',
+  gold: '#fbbf24',
+  hudPanel: '#0f141c',
+  button: '#334155',
+  buttonHover: '#475569',
+  buttonDisabled: '#1f2937',
+  overlay: '#000000',
+} as const;

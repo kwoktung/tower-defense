@@ -2,15 +2,23 @@ import type * as Phaser from 'phaser';
 import type { LevelDef } from '../../../content/schemas';
 import { buildPath } from '../../../sim/path';
 import { colorNumber, type MapView, type Skin, type SkinTheme } from '../../skin';
+import { createEnemyView } from './enemy-view';
+import { palette } from './palette';
 
 const theme: SkinTheme = {
   colors: {
-    background: '#1e2430',
-    path: '#c9b28a',
-    slot: '#3d5a4a',
-    slotHover: '#6fae8a',
-    text: '#f8fafc',
-    gold: '#fbbf24',
+    background: palette.background,
+    path: palette.path,
+    slot: palette.slot,
+    slotHover: palette.slotHover,
+    text: palette.text,
+    textMuted: palette.textMuted,
+    gold: palette.gold,
+    hudPanel: palette.hudPanel,
+    button: palette.button,
+    buttonHover: palette.buttonHover,
+    buttonDisabled: palette.buttonDisabled,
+    overlay: palette.overlay,
   },
   fonts: {
     ui: 'system-ui, sans-serif',
@@ -75,4 +83,10 @@ export const polygonSkin: Skin = {
   theme,
   preload: () => {},
   createMap,
+  createView: (scene, ref) => {
+    switch (ref.type) {
+      case 'enemy':
+        return createEnemyView(scene, ref.kind);
+    }
+  },
 };

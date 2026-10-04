@@ -15,6 +15,21 @@ export const LevelDefSchema = z
     slots: z.array(CellSchema.extend({ id: z.string().min(1) })).min(1),
     startGold: z.int().nonnegative(),
     startLives: z.int().positive(),
+    waves: z
+      .array(
+        z.object({
+          groups: z
+            .array(
+              z.object({
+                kind: z.string().min(1),
+                count: z.int().positive(),
+                intervalSec: z.number().positive(),
+              }),
+            )
+            .min(1),
+        }),
+      )
+      .min(1),
   })
   .superRefine((level, ctx) => {
     const { cols, rows } = level.grid;
@@ -61,7 +76,23 @@ export const LevelDefSchema = z
     });
   });
 
+export const UnitCatalogSchema = z.object({
+  enemies: z.record(
+    z.string().min(1),
+    z.object({
+      hp: z.number().positive(),
+      /** World units per second. */
+      speed: z.number().positive(),
+      reward: z.int().nonnegative(),
+      leakDamage: z.int().positive(),
+    }),
+  ),
+});
+
 export type LevelDef = z.infer<typeof LevelDefSchema>;
+export type UnitCatalog = z.infer<typeof UnitCatalogSchema>;
+export type EnemyDef = UnitCatalog['enemies'][string];
+export type WaveDef = LevelDef['waves'][number];
 export type SlotDef = LevelDef['slots'][number];
 export type Cell = z.infer<typeof CellSchema>;
 
@@ -69,11 +100,33 @@ export class ContentError extends Error {
   override name = 'ContentError';
 }
 
-/** Validates raw level data, throwing a ContentError that names every offending field path. */
-export function parseLevel(raw: unknown, source: string): LevelDef {
-  const result = LevelDefSchema.safeParse(raw);
+function parse<T>(schema: z.ZodType<T>, raw: unknown, label: string): T {
+  const result = schema.safeParse(raw);
   if (!result.success) {
-    throw new ContentError(`Invalid level "${source}":\n${z.prettifyError(result.error)}`);
+    throw new ContentError(`Invalid ${label}:\n${z.prettifyError(result.error)}`);
   }
   return result.data;
+}
+
+export function parseUnitCatalog(raw: unknown): UnitCatalog {
+  return parse(UnitCatalogSchema, raw, 'unit catalog');
+}
+
+/**
+ * Validates raw level data against its schema and against the Unit catalog it references,
+ * throwing a ContentError that names every offending field path.
+ */
+export function parseLevel(raw: unknown, source: string, units: UnitCatalog): LevelDef {
+  const level = parse(LevelDefSchema, raw, `level "${source}"`);
+  const unknownKinds = level.waves.flatMap((wave, w) =>
+    wave.groups.flatMap((group, g) =>
+      group.kind in units.enemies
+        ? []
+        : [`  ✖ Unknown enemy kind "${group.kind}"\n    → at waves[${w}].groups[${g}].kind`],
+    ),
+  );
+  if (unknownKinds.length) {
+    throw new ContentError(`Invalid level "${source}":\n${unknownKinds.join('\n')}`);
+  }
+  return level;
 }
