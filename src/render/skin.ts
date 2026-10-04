@@ -1,7 +1,7 @@
 import type * as Phaser from 'phaser';
 import type { LevelDef } from '../content/schemas';
 import type { PathGeometry } from '../sim/path';
-import type { Enemy, SimEvent, Tower } from '../sim/types';
+import type { Enemy, Projectile, SimEvent, Tower } from '../sim/types';
 
 /** Named colours (`#rrggbb`) and fonts a Skin provides. The HUD reads only these. */
 export interface SkinTheme {
@@ -64,6 +64,13 @@ export interface Skin {
   /** One view per entity, chosen by kind. Unknown kinds must still render (a fallback shape). */
   createTowerView(scene: Phaser.Scene, kind: string): EntityView<Tower>;
   createEnemyView(scene: Phaser.Scene, kind: string): EntityView<Enemy>;
+  /** `kind` is the kind of the tower that fired it. */
+  createProjectileView(scene: Phaser.Scene, kind: string): EntityView<Projectile>;
+  /**
+   * One-off effects not owned by a living entity, e.g. a kill burst after the enemy's view is gone
+   * or a projectile's impact. Events the skin doesn't care about are ignored.
+   */
+  playEffect(scene: Phaser.Scene, event: SimEvent): void;
 }
 
 /** Converts a `#rrggbb` token to the number form Phaser's Graphics API expects. */

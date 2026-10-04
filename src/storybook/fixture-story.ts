@@ -7,7 +7,7 @@ import { createSimulation } from '../sim/simulation';
 import type { BaseStoryArgs } from './args';
 import { mountPhaserStory } from './mount-phaser-story';
 
-export type StoryFocus = { enemyId: number } | { slotId: string };
+export type StoryFocus = { enemyId: number } | { slotId: string } | { projectileId: number };
 
 export interface FixtureStoryOptions {
   /** Draw the HUD over the world. */
@@ -69,6 +69,9 @@ function focusPoint({ level, initialState }: Fixture, focus: StoryFocus): Point 
   if ('enemyId' in focus) {
     const enemy = initialState.enemies.find((e) => e.id === focus.enemyId);
     return enemy && poseAt(buildPath(level), enemy.pathT);
+  }
+  if ('projectileId' in focus) {
+    return initialState.projectiles.find((p) => p.id === focus.projectileId);
   }
   const slot = level.slots.find((s) => s.id === focus.slotId);
   return slot && cellCenter(slot, level.grid.tileSize);

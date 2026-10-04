@@ -18,4 +18,5 @@ export default meta;
 type Story = StoryObj<ScenarioArgs>;
 
 export const OneOfEachEnemy: Story = { args: { fixture: 'oneOfEachEnemy' } };
+export const BasicTowerFiring: Story = { args: { fixture: 'basicTowerFiring' } };
 export const EnemyLeaking: Story = { args: { fixture: 'enemyLeaking' } };

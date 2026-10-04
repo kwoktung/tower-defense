@@ -3,7 +3,8 @@ import type { SimContext } from './context';
 import { buildPath } from './path';
 import { moveEnemies } from './systems/enemies';
 import { resolveOutcome } from './systems/outcome';
-import { placeTower, type PlaceTowerResult } from './systems/towers';
+import { moveProjectiles } from './systems/projectiles';
+import { placeTower, towersFire, type PlaceTowerResult } from './systems/towers';
 import { canStartNextWave, spawnEnemies, startNextWave } from './systems/waves';
 import type { SimEvent, SimState } from './types';
 
@@ -40,6 +41,7 @@ export function createInitialState(level: LevelDef, seed: number): SimState {
     outcome: 'playing',
     towers: [],
     enemies: [],
+    projectiles: [],
     nextId: 1,
   };
 }
@@ -52,10 +54,13 @@ export function createSimulation(input: SimulationInput): Simulation {
   /** Events raised by player actions between advances; delivered with the next advance. */
   let pending: SimEvent[] = [];
 
+  /** One tick. Towers aim at where enemies are at the start of the tick. */
   const step = (events: SimEvent[]) => {
+    towersFire(state, ctx, events);
+    moveProjectiles(state, ctx, events);
     moveEnemies(state, ctx, events);
     spawnEnemies(state, ctx, events);
-    resolveOutcome(state, events);
+    resolveOutcome(state, ctx, events);
     state.tick++;
   };
 

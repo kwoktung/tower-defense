@@ -44,6 +44,15 @@ export function createTowerView(scene: Phaser.Scene, kind: string): EntityView<T
       const c = cellCenter(slot, level.grid.tileSize);
       body.setPosition(c.x, c.y);
     },
-    destroy: () => body.destroy(),
+    onEvent(event) {
+      if (event.type !== 'towerFired') return;
+      scene.tweens.killTweensOf(body);
+      body.setScale(1.2);
+      scene.tweens.add({ targets: body, scale: 1, duration: 120, ease: 'Quad.easeOut' });
+    },
+    destroy: () => {
+      scene.tweens.killTweensOf(body);
+      body.destroy();
+    },
   };
 }

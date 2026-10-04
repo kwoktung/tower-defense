@@ -20,8 +20,8 @@ export interface DebugOverlay {
 }
 
 /**
- * Draws path waypoints, Slot ids and grid coordinates, each tower's range and id, and
- * each enemy's id and hp, above the world.
+ * Draws path waypoints, Slot ids and grid coordinates, each tower's range, id and target line,
+ * each enemy's id and hp, and each projectile's id, above the world.
  */
 export function createDebugOverlay(
   scene: Phaser.Scene,
@@ -81,6 +81,11 @@ export function createDebugOverlay(
         if (!slot) continue;
         const c = cellCenter(slot, tileSize);
         if (def) ranges.strokeCircle(c.x, c.y, def.range);
+        const target = state.enemies.find((e) => e.id === tower.targetId);
+        if (target) {
+          const t = poseAt(path, target.pathT);
+          ranges.lineBetween(c.x, c.y, t.x, t.y);
+        }
         seen.add(tower.id);
         label(tower.id, c.x, c.y + 20, `#${tower.id} ${tower.kind}`);
       }
@@ -88,6 +93,10 @@ export function createDebugOverlay(
         const pose = poseAt(path, enemy.pathT);
         seen.add(enemy.id);
         label(enemy.id, pose.x, pose.y + 16, `#${enemy.id} ${Math.ceil(enemy.hp)}/${enemy.maxHp}`);
+      }
+      for (const projectile of state.projectiles) {
+        seen.add(projectile.id);
+        label(projectile.id, projectile.x, projectile.y + 6, `#${projectile.id}`);
       }
       for (const [id, text] of labels) {
         if (!seen.has(id)) {

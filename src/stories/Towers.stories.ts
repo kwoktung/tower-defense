@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/html-vite';
+import { fixtures } from '../fixtures/named';
 import { scenario } from '../fixtures/scenario';
 import { baseArgs, baseArgTypes, type BaseStoryArgs } from '../storybook/args';
 import { mountFixtureStory } from '../storybook/fixture-story';
@@ -34,4 +35,10 @@ export const HoverRangePreview: Story = {
       focus: { slotId: SLOT },
       zoom: 2,
     }),
+};
+
+/** Mid-shot: the projectile is in flight toward the leading enemy. */
+export const Firing: Story = {
+  render: (args) =>
+    mountFixtureStory(args, fixtures.basicTowerFiring(), { focus: { slotId: 'slot-3' }, zoom: 2 }),
 };

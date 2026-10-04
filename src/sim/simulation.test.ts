@@ -251,3 +251,176 @@ describe('building towers', () => {
     expect(sim.state.gold).toBe(0);
   });
 });
+
+/** slot-3 sits at (544, 160). The first Path segment runs along y = 96 from x = -32, so x = pathT - 32. */
+const SLOT_3 = 'slot-3';
+/** pathT at which a first-segment enemy is exactly 160 (basic range) from slot-3: x = 544 - √(160² - 64²). */
+const RANGE_EDGE_PATH_T = 544 - Math.sqrt(160 ** 2 - 64 ** 2) + 32;
+
+describe('targeting', () => {
+  it('aims at the enemy in range that has travelled furthest along the Path', () => {
+    const sim = createSimulation(
+      scenario()
+        .atWave(0)
+        .withTower('basic', SLOT_3)
+        .withEnemies('normal', 3, { atPathT: 600, spacing: 50 })
+        .build(),
+    );
+    const leaderId = sim.state.enemies[0]!.id;
+
+    const events = sim.advance(1);
+
+    expect(sim.state.towers[0]!.targetId).toBe(leaderId);
+    expect(ofType(events, 'towerFired')).toEqual([
+      expect.objectContaining({ towerId: sim.state.towers[0]!.id, targetId: leaderId }),
+    ]);
+  });
+
+  it('treats an enemy exactly at the range edge as in range, and one just beyond as out', () => {
+    const inside = createSimulation(
+      scenario()
+        .atWave(0)
+        .withTower('basic', SLOT_3)
+        .withEnemies('normal', 1, { atPathT: RANGE_EDGE_PATH_T + 0.01 })
+        .build(),
+    );
+    const outside = createSimulation(
+      scenario()
+        .atWave(0)
+        .withTower('basic', SLOT_3)
+        .withEnemies('normal', 1, { atPathT: RANGE_EDGE_PATH_T - 0.01 })
+        .build(),
+    );
+
+    expect(ofType(inside.advance(1), 'towerFired')).toHaveLength(1);
+    expect(ofType(outside.advance(1), 'towerFired')).toHaveLength(0);
+    expect(outside.state.towers[0]!.targetId).toBeNull();
+  });
+
+  it('fires again only after its cooldown', () => {
+    const sim = createSimulation(
+      scenario()
+        .atWave(0)
+        .withTower('basic', SLOT_3)
+        .withEnemies('normal', 6, { atPathT: 700, spacing: 20 })
+        .build(),
+    );
+    const fireTicks: number[] = [];
+
+    for (let tick = 0; tick < 61; tick++) {
+      if (ofType(sim.advance(1), 'towerFired').length) fireTicks.push(tick);
+    }
+
+    // 0.5 s cooldown = 30 ticks.
+    expect(fireTicks).toEqual([0, 30, 60]);
+  });
+});
+
+describe('projectiles and damage', () => {
+  it('flies to its target and deals the tower damage on hit', () => {
+    const sim = createSimulation(
+      scenario()
+        .atWave(0)
+        .withTower('basic', SLOT_3)
+        .withEnemies('normal', 1, { atPathT: 600 })
+        .build(),
+    );
+    const enemyId = sim.state.enemies[0]!.id;
+
+    const firstTick = sim.advance(1);
+    expect(sim.state.projectiles).toHaveLength(1);
+    const events = [...firstTick, ...sim.advance(20)];
+
+    expect(ofType(events, 'enemyDamaged')[0]).toEqual({
+      type: 'enemyDamaged',
+      id: enemyId,
+      amount: 10,
+    });
+    expect(sim.state.enemies[0]!.hp).toBe(30);
+  });
+
+  it('kills an enemy at zero hp, removing it and paying its reward', () => {
+    const sim = createSimulation(
+      scenario()
+        .atWave(0)
+        .withGold(0)
+        .withTower('basic', SLOT_3)
+        .withEnemies('normal', 1, { atPathT: 600, hpRatio: 0.25 })
+        .build(),
+    );
+    const enemyId = sim.state.enemies[0]!.id;
+
+    const events = sim.advance(30);
+
+    expect(ofType(events, 'enemyKilled')).toEqual([
+      expect.objectContaining({ id: enemyId, kind: 'normal', reward: 5 }),
+    ]);
+    expect(sim.state.enemies).toEqual([]);
+    expect(sim.state.gold).toBe(5);
+  });
+
+  it("still flies to a dead target's last position, hitting nothing", () => {
+    // Two towers fire at the same weak enemy; the first hit kills it.
+    const sim = createSimulation(
+      scenario()
+        .atWave(0)
+        .withTower('basic', SLOT_3)
+        .withTower('basic', 'slot-2')
+        .withEnemies('normal', 1, { atPathT: 500, hpRatio: 0.25 })
+        .build(),
+    );
+
+    const events = sim.advance(40);
+
+    expect(ofType(events, 'towerFired')).toHaveLength(2);
+    expect(ofType(events, 'projectileHit')).toHaveLength(2);
+    expect(ofType(events, 'enemyDamaged')).toHaveLength(1);
+    expect(ofType(events, 'enemyKilled')).toHaveLength(1);
+    expect(sim.state.projectiles).toEqual([]);
+  });
+});
+
+describe('winning', () => {
+  it('wins once the last Wave has fully spawned and the field is clear', () => {
+    const sim = createSimulation(scenario().atWave(2).build());
+
+    const events = sim.advance(1);
+
+    expect(sim.state.outcome).toBe('won');
+    expect(ofType(events, 'gameEnded')).toEqual([{ type: 'gameEnded', outcome: 'won' }]);
+  });
+
+  it('does not win while the last Wave still has enemies on the field', () => {
+    const sim = createSimulation(
+      scenario().atWave(2).withEnemies('normal', 1, { atPathT: 100 }).build(),
+    );
+
+    sim.advance(1);
+
+    expect(sim.state.outcome).toBe('playing');
+  });
+
+  it('wins when towers kill the last enemy of the last Wave', () => {
+    const sim = createSimulation(
+      scenario()
+        .atWave(2)
+        .withTower('basic', SLOT_3)
+        .withEnemies('normal', 1, { atPathT: 600, hpRatio: 0.25 })
+        .build(),
+    );
+
+    const events = sim.advance(30);
+
+    expect(ofType(events, 'enemyKilled')).toHaveLength(1);
+    expect(sim.state.outcome).toBe('won');
+    expect(sim.advance(30)).toEqual([]);
+  });
+
+  it('does not win before the last Wave', () => {
+    const sim = createSimulation(scenario().atWave(1).build());
+
+    sim.advance(1);
+
+    expect(sim.state.outcome).toBe('playing');
+  });
+});

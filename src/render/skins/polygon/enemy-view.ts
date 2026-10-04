@@ -42,6 +42,7 @@ const FALLBACK: EnemyShape = {
   ],
 };
 
+const HIT_FLASH_MS = 80;
 const BAR_WIDTH = 24;
 const BAR_HEIGHT = 4;
 const BAR_OFFSET_Y = -20;
@@ -53,8 +54,11 @@ export function createEnemyView(scene: Phaser.Scene, kind: string): EntityView<E
   const body = scene.add.graphics();
   fillPolygon(body, shape.points, colorNumber(shape.color));
 
+  const flash = scene.add.graphics().setVisible(false);
+  fillPolygon(flash, shape.points, colorNumber(palette.hitFlash));
   const bar = scene.add.graphics();
-  root.add([body, bar]);
+  root.add([body, flash, bar]);
+  let flashTimer: Phaser.Time.TimerEvent | null = null;
 
   let lastRatio = -1;
   const drawBar = (ratio: number) => {
@@ -72,8 +76,18 @@ export function createEnemyView(scene: Phaser.Scene, kind: string): EntityView<E
       const pose = poseAt(path, enemy.pathT);
       root.setPosition(pose.x, pose.y);
       body.setRotation(pose.angle);
+      flash.setRotation(pose.angle);
       drawBar(Math.max(0, enemy.hp / enemy.maxHp));
     },
-    destroy: () => root.destroy(),
+    onEvent(event) {
+      if (event.type !== 'enemyDamaged') return;
+      flash.setVisible(true);
+      flashTimer?.remove();
+      flashTimer = scene.time.delayedCall(HIT_FLASH_MS, () => flash.setVisible(false));
+    },
+    destroy: () => {
+      flashTimer?.remove();
+      root.destroy();
+    },
   };
 }

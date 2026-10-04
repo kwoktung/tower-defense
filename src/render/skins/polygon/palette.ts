@@ -11,6 +11,8 @@ export const palette = {
   enemyFast: '#fb7185',
   enemyUnknown: '#991b1b',
   hpBar: '#22c55e',
+  hitFlash: '#ffffff',
+  projectile: '#facc15',
   hpBarEmpty: '#374151',
   text: '#f8fafc',
   textMuted: '#94a3b8',

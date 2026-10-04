@@ -1,6 +1,6 @@
 import { loadBundledLevel, loadBundledUnits } from '../content/bundled';
 import type { LevelDef, UnitCatalog } from '../content/schemas';
-import { createInitialState, type SimulationInput } from '../sim/simulation';
+import { createInitialState, createSimulation, type SimulationInput } from '../sim/simulation';
 import type { Outcome, SimState } from '../sim/types';
 
 /** One moment of play, ready for `createSimulation(fixture)` in tests or to render in a story. */
@@ -86,6 +86,14 @@ export class ScenarioBuilder {
         pathT: Math.max(0, atPathT - i * spacing),
       });
     }
+    return this;
+  }
+
+  /** Runs the Simulation forward from the state built so far, e.g. to catch a projectile mid-flight. */
+  advance(ticks: number): this {
+    const sim = createSimulation({ ...this.build(), seed: this.seed });
+    sim.advance(ticks);
+    this.state = structuredClone(sim.state);
     return this;
   }
 

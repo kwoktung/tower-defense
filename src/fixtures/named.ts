@@ -19,12 +19,33 @@ export const fixtures = {
   /** Not enough gold for any tower, with one tower already built. */
   lowGold: (): Fixture => scenario().withTower('basic', 'slot-2').withGold(30).build(),
 
+  /** A basic tower shooting at a line of enemies, its first projectile in flight. */
+  basicTowerFiring: (): Fixture =>
+    scenario()
+      .atWave(0)
+      .withTower('basic', 'slot-3')
+      .withEnemies('normal', 3, { atPathT: 560, spacing: 48 })
+      .advance(4)
+      .build(),
+
   /** A group of enemies about to reach the end of the Path. */
   enemyLeaking: (): Fixture =>
     scenario()
       .atWave(0)
       .withLives(3)
       .withEnemies('normal', 3, { atPathT: 2380, spacing: 40 })
+      .build(),
+
+  /** The game just won: the last Wave cleared with towers still standing. */
+  won: (): Fixture =>
+    scenario()
+      .atWave(2)
+      .withLives(7)
+      .withGold(85)
+      .withTower('basic', 'slot-3')
+      .withTower('basic', 'slot-7')
+      .withTower('basic', 'slot-10')
+      .withOutcome('won')
       .build(),
 
   /** The game just lost: lives at zero during the second Wave. */

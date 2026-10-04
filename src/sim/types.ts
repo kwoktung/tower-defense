@@ -19,6 +19,20 @@ export interface Tower {
   targetId: number | null;
 }
 
+/** A homing shot. Flies at the target, or at its last known position once the target is gone. */
+export interface Projectile {
+  id: number;
+  /** Kind of the tower that fired it; decides speed, damage and attack mode. */
+  kind: string;
+  towerId: number;
+  /** Null once the target has died or leaked. */
+  targetId: number | null;
+  x: number;
+  y: number;
+  targetX: number;
+  targetY: number;
+}
+
 /** Where the current Wave is in its spawn groups. */
 export interface SpawnCursor {
   groupIndex: number;
@@ -37,7 +51,6 @@ export interface WaveProgress {
 
 /**
  * The complete, serializable state of a Simulation at one tick.
- * Projectiles arrive with the ticket that introduces them.
  */
 export interface SimState {
   tick: number;
@@ -48,12 +61,17 @@ export interface SimState {
   outcome: Outcome;
   towers: Tower[];
   enemies: Enemy[];
+  projectiles: Projectile[];
   nextId: number;
 }
 
 export type SimEvent =
   | { type: 'waveStarted'; index: number }
   | { type: 'towerPlaced'; id: number; kind: string; slotId: string }
+  | { type: 'towerFired'; towerId: number; projectileId: number; targetId: number }
+  | { type: 'projectileHit'; projectileId: number; x: number; y: number; splashRadius?: number }
   | { type: 'enemySpawned'; id: number; kind: string }
+  | { type: 'enemyDamaged'; id: number; amount: number }
+  | { type: 'enemyKilled'; id: number; kind: string; reward: number; x: number; y: number }
   | { type: 'enemyLeaked'; id: number; livesLost: number }
   | { type: 'gameEnded'; outcome: Exclude<Outcome, 'playing'> };

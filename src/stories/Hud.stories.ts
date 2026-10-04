@@ -23,4 +23,5 @@ export const Default: Story = { args: { fixture: 'emptyMap' } };
 export const CannotStartWave: Story = { args: { fixture: 'oneOfEachEnemy' } };
 /** Not enough gold for any tower: build buttons are disabled. */
 export const LowGold: Story = { args: { fixture: 'lowGold' } };
+export const WonOverlay: Story = { args: { fixture: 'won' } };
 export const LostOverlay: Story = { args: { fixture: 'lost' } };

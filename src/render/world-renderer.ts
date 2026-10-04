@@ -40,24 +40,40 @@ export class WorldRenderer {
   private readonly ctx: SyncContext;
   private readonly towers;
   private readonly enemies;
+  private readonly projectiles;
 
-  constructor(scene: Phaser.Scene, skin: Skin, level: LevelDef) {
+  constructor(
+    private readonly scene: Phaser.Scene,
+    private readonly skin: Skin,
+    level: LevelDef,
+  ) {
     this.ctx = { level, path: buildPath(level) };
     this.towers = new ViewSet((kind) => skin.createTowerView(scene, kind));
     this.enemies = new ViewSet((kind) => skin.createEnemyView(scene, kind));
+    this.projectiles = new ViewSet((kind) => skin.createProjectileView(scene, kind));
   }
 
   render(state: Readonly<SimState>, events: readonly SimEvent[] = []): void {
     this.towers.sync(state.towers, this.ctx);
     this.enemies.sync(state.enemies, this.ctx);
+    this.projectiles.sync(state.projectiles, this.ctx);
     for (const event of events) {
-      if (!('id' in event)) continue;
-      (this.towers.views.get(event.id) ?? this.enemies.views.get(event.id))?.onEvent?.(event);
+      switch (event.type) {
+        case 'towerFired':
+          this.towers.views.get(event.towerId)?.onEvent?.(event);
+          break;
+        case 'enemyDamaged':
+          this.enemies.views.get(event.id)?.onEvent?.(event);
+          break;
+        default:
+          this.skin.playEffect(this.scene, event);
+      }
     }
   }
 
   destroy(): void {
     this.towers.destroy();
     this.enemies.destroy();
+    this.projectiles.destroy();
   }
 }

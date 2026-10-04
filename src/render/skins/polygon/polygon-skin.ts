@@ -2,9 +2,11 @@ import type * as Phaser from 'phaser';
 import type { LevelDef } from '../../../content/schemas';
 import { buildPath, cellCenter } from '../../../sim/path';
 import { colorNumber, type MapView, type Skin, type SkinTheme, type SlotHover } from '../../skin';
+import { playEffect } from './effects';
 import { createEnemyView } from './enemy-view';
 import { createTowerView } from './tower-view';
 import { palette } from './palette';
+import { createProjectileView } from './projectile-view';
 
 const theme: SkinTheme = {
   colors: {
@@ -101,4 +103,6 @@ export const polygonSkin: Skin = {
   createMap,
   createTowerView,
   createEnemyView,
+  createProjectileView,
+  playEffect,
 };
