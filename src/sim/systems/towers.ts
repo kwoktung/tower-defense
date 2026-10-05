@@ -8,6 +8,41 @@ export type PlaceTowerFailure =
 
 export type PlaceTowerResult = { ok: true; id: number } | { ok: false; reason: PlaceTowerFailure };
 
+/** Whether a tower could be built right now, and if not, the reason `placeTower` would give. */
+export type PlacementCheck = { ok: true } | { ok: false; reason: PlaceTowerFailure };
+
+const slotExists = (ctx: SimContext, slotId: string) =>
+  ctx.level.slots.some((s) => s.id === slotId);
+const slotOccupied = (state: SimState, slotId: string) =>
+  state.towers.some((t) => t.slotId === slotId);
+
+/** A Slot that exists and has no tower on it. */
+export function isSlotFree(state: SimState, ctx: SimContext, slotId: string): boolean {
+  return slotExists(ctx, slotId) && !slotOccupied(state, slotId);
+}
+
+/** Whether the current gold covers the cost of a tower of `kind` (false for unknown kinds). */
+export function canAfford(state: SimState, ctx: SimContext, kind: string): boolean {
+  const def = ctx.units.towers[kind];
+  return def !== undefined && state.gold >= def.cost;
+}
+
+/** The single home of the build rules; `placeTower` and every caller-facing query use it. */
+export function checkPlacement(
+  state: SimState,
+  ctx: SimContext,
+  slotId: string,
+  kind: string,
+): PlacementCheck {
+  const fail = (reason: PlaceTowerFailure): PlacementCheck => ({ ok: false, reason });
+  if (state.outcome !== 'playing') return fail('gameOver');
+  if (!slotExists(ctx, slotId)) return fail('unknownSlot');
+  if (!ctx.units.towers[kind]) return fail('unknownKind');
+  if (slotOccupied(state, slotId)) return fail('slotOccupied');
+  if (!canAfford(state, ctx, kind)) return fail('notEnoughGold');
+  return { ok: true };
+}
+
 /** Builds a tower of `kind` on an empty Slot, paying its cost. Leaves the state untouched on failure. */
 export function placeTower(
   state: SimState,
@@ -16,14 +51,10 @@ export function placeTower(
   kind: string,
   events: SimEvent[],
 ): PlaceTowerResult {
-  const fail = (reason: PlaceTowerFailure): PlaceTowerResult => ({ ok: false, reason });
-  if (state.outcome !== 'playing') return fail('gameOver');
-  if (!ctx.level.slots.some((s) => s.id === slotId)) return fail('unknownSlot');
-  const def = ctx.units.towers[kind];
-  if (!def) return fail('unknownKind');
-  if (state.towers.some((t) => t.slotId === slotId)) return fail('slotOccupied');
-  if (state.gold < def.cost) return fail('notEnoughGold');
+  const check = checkPlacement(state, ctx, slotId, kind);
+  if (!check.ok) return check;
 
+  const def = ctx.units.towers[kind]!;
   state.gold -= def.cost;
   const id = state.nextId++;
   state.towers.push({ id, kind, slotId, cooldownTicks: 0, targetId: null });

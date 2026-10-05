@@ -48,7 +48,7 @@ export class GameScene extends Phaser.Scene {
     /** The empty Slot under the pointer, if any. Occupied Slots don't react. */
     const emptySlotAt = (pointer: Phaser.Input.Pointer) => {
       const slotId = slotAt(level, pointer.worldX, pointer.worldY);
-      return slotId && !this.sim.state.towers.some((t) => t.slotId === slotId) ? slotId : null;
+      return slotId && this.sim.isSlotFree(slotId) ? slotId : null;
     };
     const updateHover = (pointer: Phaser.Input.Pointer) => {
       const slotId = emptySlotAt(pointer);

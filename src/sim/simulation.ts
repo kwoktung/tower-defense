@@ -4,7 +4,15 @@ import { buildPath } from './path';
 import { moveEnemies } from './systems/enemies';
 import { resolveOutcome } from './systems/outcome';
 import { moveProjectiles } from './systems/projectiles';
-import { placeTower, towersFire, type PlaceTowerResult } from './systems/towers';
+import {
+  canAfford,
+  checkPlacement,
+  isSlotFree,
+  placeTower,
+  towersFire,
+  type PlacementCheck,
+  type PlaceTowerResult,
+} from './systems/towers';
 import { canStartNextWave, spawnEnemies, startNextWave } from './systems/waves';
 import type { SimEvent, SimState } from './types';
 
@@ -27,9 +35,15 @@ export interface Simulation {
   startNextWave(): boolean;
   /** Builds a tower on an empty Slot; the towerPlaced event arrives with the next advance. */
   placeTower(slotId: string, kind: string): PlaceTowerResult;
+  /** Whether `placeTower(slotId, kind)` would succeed now, and if not, why. Changes nothing. */
+  canPlaceTower(slotId: string, kind: string): PlacementCheck;
+  /** Whether the current gold covers a tower of `kind`, wherever it would go. */
+  canAfford(kind: string): boolean;
+  /** Whether `slotId` is a Slot with no tower on it. */
+  isSlotFree(slotId: string): boolean;
 }
 
-export type { PlaceTowerFailure, PlaceTowerResult } from './systems/towers';
+export type { PlacementCheck, PlaceTowerFailure, PlaceTowerResult } from './systems/towers';
 
 export function createInitialState(level: LevelDef, seed: number): SimState {
   return {
@@ -83,5 +97,8 @@ export function createSimulation(input: SimulationInput): Simulation {
       return true;
     },
     placeTower: (slotId, kind) => placeTower(state, ctx, slotId, kind, pending),
+    canPlaceTower: (slotId, kind) => checkPlacement(state, ctx, slotId, kind),
+    canAfford: (kind) => canAfford(state, ctx, kind),
+    isSlotFree: (slotId) => isSlotFree(state, ctx, slotId),
   };
 }

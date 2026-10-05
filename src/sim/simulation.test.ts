@@ -481,3 +481,49 @@ describe('splash', () => {
     ]);
   });
 });
+
+describe('build queries', () => {
+  it.each([
+    ['gameOver', () => fixtures.lost(), 'slot-3', 'basic'],
+    ['unknownSlot', () => fixtures.emptyMap(), 'slot-99', 'basic'],
+    ['unknownKind', () => fixtures.emptyMap(), 'slot-3', 'laser'],
+    ['slotOccupied', () => scenario().withTower('basic', 'slot-3').build(), 'slot-3', 'basic'],
+    ['notEnoughGold', () => fixtures.lowGold(), 'slot-3', 'basic'],
+  ] as const)(
+    'canPlaceTower reports %s exactly as placeTower would, without changing anything',
+    (reason, fixture, slotId, kind) => {
+      const sim = createSimulation(fixture());
+      const before = structuredClone(sim.state);
+
+      expect(sim.canPlaceTower(slotId, kind)).toEqual({ ok: false, reason });
+      expect(sim.state).toEqual(before);
+      expect(sim.placeTower(slotId, kind)).toEqual({ ok: false, reason });
+    },
+  );
+
+  it('canPlaceTower allows a build that placeTower then performs, and reports no events', () => {
+    const sim = createSimulation(fixtures.emptyMap());
+    const before = structuredClone(sim.state);
+
+    expect(sim.canPlaceTower('slot-3', 'splash')).toEqual({ ok: true });
+    expect(sim.state).toEqual(before);
+    expect(sim.advance(0)).toEqual([]);
+    expect(sim.placeTower('slot-3', 'splash').ok).toBe(true);
+  });
+
+  it('canAfford compares gold with the cost of each kind, regardless of Slot', () => {
+    const sim = createSimulation(scenario().withGold(60).build());
+
+    expect(sim.canAfford('basic')).toBe(true);
+    expect(sim.canAfford('splash')).toBe(false);
+    expect(sim.canAfford('laser')).toBe(false);
+  });
+
+  it('isSlotFree is true only for an existing Slot without a tower', () => {
+    const sim = createSimulation(scenario().withTower('basic', 'slot-3').build());
+
+    expect(sim.isSlotFree('slot-2')).toBe(true);
+    expect(sim.isSlotFree('slot-3')).toBe(false);
+    expect(sim.isSlotFree('slot-99')).toBe(false);
+  });
+});

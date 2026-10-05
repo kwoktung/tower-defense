@@ -177,7 +177,7 @@ export function hudModelOf(sim: Simulation, selectedTower: string | null): HudMo
       kind,
       name: def.name,
       cost: def.cost,
-      affordable: sim.state.gold >= def.cost,
+      affordable: sim.canAfford(kind),
       selected: kind === selectedTower,
     })),
     waveNumber: sim.state.wave.index + 1,
