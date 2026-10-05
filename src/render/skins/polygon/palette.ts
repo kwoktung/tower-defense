@@ -16,7 +16,10 @@ export const palette = {
   rangePreview: '#e2e8f0',
   enemyNormal: '#dc2626',
   enemyFast: '#fb7185',
-  enemyUnknown: '#991b1b',
+  enemyArmored: '#991b1b',
+  /** Outline marking an Enemy with Armor. */
+  armorTrim: '#9ca3af',
+  enemyUnknown: '#7f1d1d',
   hpBar: '#22c55e',
   hitFlash: '#ffffff',
   projectile: '#facc15',
@@ -50,6 +53,7 @@ export function towerColor(kind: string): string {
 const ENEMY_COLORS: Record<string, string> = {
   normal: palette.enemyNormal,
   fast: palette.enemyFast,
+  armored: palette.enemyArmored,
 };
 
 /** The one place an enemy kind gets its colour; unknown kinds share the fallback. */

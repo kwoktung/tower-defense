@@ -112,6 +112,8 @@ export const UnitCatalogSchema = z.object({
       speed: z.number().positive(),
       reward: z.int().nonnegative(),
       leakDamage: z.int().positive(),
+      /** Flat reduction of every hit, never below a minimum share (see the Simulation's Armor rule). */
+      armor: z.number().nonnegative().default(0),
     }),
   ),
 });

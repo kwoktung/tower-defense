@@ -90,7 +90,9 @@ export function createDebugOverlay(
       for (const enemy of state.enemies) {
         const pose = poseAt(path, enemy.pathT);
         seen.add(enemy.id);
-        label(enemy.id, pose.x, pose.y + 16, `#${enemy.id} ${Math.ceil(enemy.hp)}/${enemy.maxHp}`);
+        const armor = units.enemies[enemy.kind]?.armor ?? 0;
+        const hp = `#${enemy.id} ${Math.ceil(enemy.hp)}/${enemy.maxHp}`;
+        label(enemy.id, pose.x, pose.y + 16, armor > 0 ? `${hp} armor ${armor}` : hp);
       }
       for (const projectile of state.projectiles) {
         seen.add(projectile.id);

@@ -743,3 +743,77 @@ describe('projectiles in flight', () => {
     expect(ofType(events, 'enemyDamaged')[0]!.amount).toBe(statsOf('basic', 1).damage);
   });
 });
+
+describe('Armor', () => {
+  const units = fixtures.emptyMap().units;
+  const armorOf = (kind: string) => units.enemies[kind]!.armor;
+
+  /** The first enemyDamaged amount when a `level` basic tower on slot-3 shoots one `kind` enemy. */
+  const firstHit = (kind: string, level: number) => {
+    const sim = createSimulation(
+      scenario()
+        .atWave(0)
+        .withTower('basic', SLOT_3, level)
+        .withEnemies(kind, 1, { atPathT: 600 })
+        .build(),
+    );
+    return ofType(sim.advance(30), 'enemyDamaged')[0]!.amount;
+  };
+
+  it('reduces each hit by a flat amount', () => {
+    const damage = statsOf('basic', 3).damage;
+    expect(damage * 0.2).toBeLessThan(damage - armorOf('armored'));
+
+    expect(firstHit('armored', 3)).toBe(damage - armorOf('armored'));
+  });
+
+  it('always lets a fifth of the hit through, however high the Armor', () => {
+    const sim = createSimulation({
+      ...scenario()
+        .atWave(0)
+        .withTower('basic', SLOT_3)
+        .withEnemies('armored', 1, { atPathT: 600 })
+        .build(),
+      units: {
+        ...units,
+        enemies: { ...units.enemies, armored: { ...units.enemies.armored!, armor: 99 } },
+      },
+    });
+
+    const amount = ofType(sim.advance(30), 'enemyDamaged')[0]!.amount;
+
+    expect(amount).toBeCloseTo(statsOf('basic', 1).damage * 0.2);
+  });
+
+  it('leaves enemies without Armor untouched', () => {
+    expect(armorOf('normal')).toBe(0);
+    expect(firstHit('normal', 1)).toBe(statsOf('basic', 1).damage);
+  });
+
+  it('is applied to each splash victim by its own Armor', () => {
+    const sim = createSimulation(
+      scenario()
+        .atWave(0)
+        .withTower('splash', SLOT_3)
+        .withEnemies('armored', 1, { atPathT: 600 })
+        .withEnemies('normal', 1, { atPathT: 590 })
+        .build(),
+    );
+    const [armored, normal] = sim.state.enemies;
+    const damage = statsOf('splash', 1).damage;
+
+    const hits = ofType(sim.advance(60), 'enemyDamaged');
+
+    expect(hits).toEqual([
+      {
+        type: 'enemyDamaged',
+        id: armored!.id,
+        amount: Math.max(damage - armorOf('armored'), damage * 0.2),
+      },
+      { type: 'enemyDamaged', id: normal!.id, amount: damage },
+    ]);
+    expect(sim.state.enemies.find((e) => e.id === armored!.id)!.hp).toBe(
+      armored!.maxHp - Math.max(damage - armorOf('armored'), damage * 0.2),
+    );
+  });
+});

@@ -67,6 +67,14 @@ function hit(
   for (const enemy of victims) damageEnemy(enemy, damage, state, ctx, events);
 }
 
+/** Share of a hit that always gets through, however high the Armor. */
+const MIN_DAMAGE_SHARE = 0.2;
+
+/** Armor reduces every hit by a flat amount, but never below MIN_DAMAGE_SHARE of it. */
+function damageAfterArmor(damage: number, armor: number): number {
+  return Math.max(damage - armor, damage * MIN_DAMAGE_SHARE);
+}
+
 function damageEnemy(
   enemy: Enemy,
   amount: number,
@@ -74,11 +82,12 @@ function damageEnemy(
   ctx: SimContext,
   events: SimEvent[],
 ): void {
-  enemy.hp -= amount;
-  events.push({ type: 'enemyDamaged', id: enemy.id, amount });
+  const { reward, armor } = ctx.units.enemies[enemy.kind]!;
+  const dealt = damageAfterArmor(amount, armor);
+  enemy.hp -= dealt;
+  events.push({ type: 'enemyDamaged', id: enemy.id, amount: dealt });
   if (enemy.hp > 0) return;
 
-  const { reward } = ctx.units.enemies[enemy.kind]!;
   const pose = poseAt(ctx.path, enemy.pathT);
   state.gold += reward;
   state.enemies = state.enemies.filter((e) => e !== enemy);
