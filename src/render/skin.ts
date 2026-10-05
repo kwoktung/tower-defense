@@ -35,7 +35,6 @@ export interface SlotHover {
 
 export interface MapView {
   setHover(hover: SlotHover | null): void;
-  destroy(): void;
 }
 
 /** Everything an EntityView may need, besides the entity itself, to place itself. */

@@ -86,13 +86,7 @@ function createMap(scene: Phaser.Scene, level: LevelDef): MapView {
 
   root.add([ground, slots]);
 
-  return {
-    setHover: drawSlots,
-    destroy: () => {
-      root.destroy();
-      range.destroy();
-    },
-  };
+  return { setHover: drawSlots };
 }
 
 export const polygonSkin: Skin = {

@@ -56,3 +56,9 @@
     - 堆快照（拍摄前会强制 GC）对比：第 50、100、200 次重启后，Graphics 一直是 11 个，Container 10 个，Text 38 个，WorldRenderer 1 个，ViewSet 3 个，canvas 和 WebGL context 各 1 个，Tween 和 TimerEvent 都是 0。
     - 普通 Object 和 Array：第 50 到 100 次重启之间多了 84 个和 28 个；第 100 到 200 次之间都是 0。增长没有随重启次数累积，所以判断是一次性的预热分配，不是泄漏。
   - **结论**：删掉 WorldRenderer、HUD、Debug overlay 的 `destroy` 不会导致泄漏，旧局的对象在重启后都被回收了。
+- 2026-10-05 按用户要求，`MapView.destroy` 也一并删除，包括接口里的声明和 Polygon 皮肤里的实现。
+  - 地图由两个顶层显示对象组成：地面和 Slot 所在的 container，以及单独的射程预览图形。场景关闭时，`DisplayList.shutdown` 会把它们都销毁。
+  - **验证**：
+    - typecheck、lint 通过，97 个测试全部通过；94/94 张截图逐字节一致。
+    - 在 dev 里连续重启 30 次，每次重启前都让地图画出射程预览：Game 场景的显示对象始终是 3 个，其中 Graphics 1 个，和刚启动时相同。重启后悬停仍然正常（slot-7，射程 160），控制台没有报错。
+  - 现在 Skin 相关接口里只剩 `EntityView.destroy`，它在实体从快照中消失时由 WorldRenderer 调用。
