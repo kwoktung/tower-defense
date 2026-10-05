@@ -4,3 +4,4 @@ storybook-static
 .shots
 *.log
 .DS_Store
+.claude/worktrees/
