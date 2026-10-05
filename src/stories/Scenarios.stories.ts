@@ -48,6 +48,15 @@ export const OneOfEachEnemy: Story = { args: { fixture: 'oneOfEachEnemy' } };
 export const OneOfEachTower: Story = { args: { fixture: 'oneOfEachTower' } };
 /** The skin acceptance page: every tower kind at every level (ADR-0002). */
 export const AllTowerLevels: Story = { args: { fixture: 'allTowerLevels' } };
+/** Gold on more towers vs on one upgrade: same pack, compare the timelines (ticket 04). */
+export const SpentOnTowers: Story = {
+  args: { fixture: 'spentOnTowers' },
+  ...timeline(0, 120, 300, 600),
+};
+export const SpentOnUpgrade: Story = {
+  args: { fixture: 'spentOnUpgrade' },
+  ...timeline(0, 120, 300, 600),
+};
 export const BasicTowerFiring: Story = {
   args: { fixture: 'basicTowerFiring' },
   ...timeline(0, 10, 40, 90),

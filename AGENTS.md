@@ -25,6 +25,7 @@ Single-context: one `CONTEXT.md` + `docs/adr/` at the repo root. See `docs/agent
 | `pnpm format`                        | Prettier                                                                                                                                                                                                            |
 | `pnpm storybook`                     | Storybook at <http://localhost:6006>                                                                                                                                                                                |
 | `pnpm shots [filter] [--skip-build]` | Build Storybook and screenshot every story (or those whose id/title contains `filter`, e.g. `pnpm shots splash`) into `.shots/`. Prints the files written. A full run takes about a minute; filter while iterating. |
+| `pnpm balance`                       | Balance report (not a test, ~20 s): leaks of more level-1 towers vs one upgraded tower at their best Slots, and level 1 played by scripted strategies. Run after changing Unit catalog numbers.                     |
 
 Shot file names: `<story-id>.png`, `<story-id>--debug.png` (Debug overlay on), and for stories declaring `parameters.shots.ticks`, `<story-id>--t<ticks>.png` / `--debug--t<ticks>.png` — the same Scenario fast-forwarded, so you can see how it plays out.
 

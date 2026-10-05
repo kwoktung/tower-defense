@@ -53,6 +53,26 @@ export const fixtures = {
       .withTower('splash', 'slot-11', 3)
       .build(),
 
+  /** About 150 gold spent on three level-1 basic towers, facing a dense pack. Compare with spentOnUpgrade. */
+  spentOnTowers: (): Fixture =>
+    scenario()
+      .atWave(2)
+      .withTower('basic', 'slot-3')
+      .withTower('basic', 'slot-7')
+      .withTower('basic', 'slot-6')
+      .withEnemies('normal', 12, { atPathT: 420, spacing: 24 })
+      .withEnemies('fast', 8, { atPathT: 100, spacing: 20 })
+      .build(),
+
+  /** About 150 gold spent on one top-level basic tower, facing the same pack as spentOnTowers. */
+  spentOnUpgrade: (): Fixture =>
+    scenario()
+      .atWave(2)
+      .withTower('basic', 'slot-7', 3)
+      .withEnemies('normal', 12, { atPathT: 420, spacing: 24 })
+      .withEnemies('fast', 8, { atPathT: 100, spacing: 20 })
+      .build(),
+
   /** A level-1 basic tower with gold for its upgrade, during a Wave (open its panel in stories). */
   towerSelected: (): Fixture =>
     scenario()
