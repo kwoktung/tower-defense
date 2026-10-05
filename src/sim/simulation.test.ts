@@ -24,8 +24,8 @@ describe('createSimulation', () => {
 
     expect(sim.state).toMatchObject({
       tick: 0,
-      gold: 120,
-      lives: 10,
+      gold: sim.level.startGold,
+      lives: sim.level.startLives,
       wave: { index: -1, spawning: null },
       outcome: 'playing',
       enemies: [],
@@ -74,7 +74,7 @@ describe('starting a Wave', () => {
   });
 
   it('is refused after the last Wave', () => {
-    const sim = createSimulation(scenario().atWave(2).build());
+    const sim = createSimulation(scenario().atLastWave().build());
 
     expect(sim.startNextWave()).toBe(false);
   });
@@ -91,8 +91,19 @@ describe('starting a Wave', () => {
 });
 
 describe('spawning', () => {
+  /** Waves of their own, so these rules don't depend on how level 1 is tuned. */
+  const WAVES = [
+    { groups: [{ kind: 'normal', count: 8, intervalSec: 0.8 }] },
+    {
+      groups: [
+        { kind: 'normal', count: 10, intervalSec: 0.7 },
+        { kind: 'fast', count: 6, intervalSec: 0.5 },
+      ],
+    },
+  ];
+
   it("spawns each group's count at its interval, starting on the first tick", () => {
-    const sim = createSimulation(fixtures.emptyMap());
+    const sim = createSimulation(scenario().withWaves(WAVES).build());
     sim.startNextWave();
 
     const spawns = spawnTicks(sim, 10 * TICKS_PER_SECOND);
@@ -104,7 +115,7 @@ describe('spawning', () => {
   });
 
   it('walks the spawn groups in order, keeping the previous interval between groups', () => {
-    const sim = createSimulation(scenario().atWave(0).build());
+    const sim = createSimulation(scenario().withWaves(WAVES).atWave(0).build());
     sim.startNextWave();
 
     const spawns = spawnTicks(sim, 20 * TICKS_PER_SECOND);
@@ -120,12 +131,13 @@ describe('spawning', () => {
   });
 
   it('spawns new enemies at the start of the Path with full hp', () => {
-    const sim = createSimulation(fixtures.emptyMap());
+    const sim = createSimulation(scenario().withWaves(WAVES).build());
     sim.startNextWave();
     sim.advance(1);
+    const { hp } = sim.units.enemies.normal!;
 
     expect(sim.state.enemies).toEqual([
-      { id: 1, kind: 'normal', hp: 40, maxHp: 40, pathT: 0, slow: null },
+      { id: 1, kind: 'normal', hp, maxHp: hp, pathT: 0, slow: null },
     ]);
   });
 });
@@ -217,7 +229,7 @@ describe('building towers', () => {
     const result = sim.placeTower('slot-3', 'basic');
 
     expect(result).toEqual({ ok: true, id: expect.any(Number) });
-    expect(sim.state.gold).toBe(120 - 50);
+    expect(sim.state.gold).toBe(sim.level.startGold - statsOf('basic', 1).cost);
     expect(sim.state.towers).toEqual([
       {
         id: (result as { id: number }).id,
@@ -386,7 +398,7 @@ describe('projectiles and damage', () => {
 
 describe('winning', () => {
   it('wins once the last Wave has fully spawned and the field is clear', () => {
-    const sim = createSimulation(scenario().atWave(2).build());
+    const sim = createSimulation(scenario().atLastWave().build());
 
     const events = sim.advance(1);
 
@@ -396,7 +408,7 @@ describe('winning', () => {
 
   it('does not win while the last Wave still has enemies on the field', () => {
     const sim = createSimulation(
-      scenario().atWave(2).withEnemies('normal', 1, { atPathT: 100 }).build(),
+      scenario().atLastWave().withEnemies('normal', 1, { atPathT: 100 }).build(),
     );
 
     sim.advance(1);
@@ -407,7 +419,7 @@ describe('winning', () => {
   it('wins when towers kill the last enemy of the last Wave', () => {
     const sim = createSimulation(
       scenario()
-        .atWave(2)
+        .atLastWave()
         .withTower('basic', SLOT_3)
         .withEnemies('normal', 1, { atPathT: 600, hpRatio: 0.25 })
         .build(),
@@ -421,7 +433,7 @@ describe('winning', () => {
   });
 
   it('does not win before the last Wave', () => {
-    const sim = createSimulation(scenario().atWave(1).build());
+    const sim = createSimulation(scenario().atWave(0).build());
 
     sim.advance(1);
 

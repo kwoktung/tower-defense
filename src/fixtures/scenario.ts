@@ -1,5 +1,5 @@
 import { loadBundledLevel, loadBundledUnits } from '../content/bundled';
-import { towerStats, type LevelDef, type UnitCatalog } from '../content/schemas';
+import { towerStats, type LevelDef, type UnitCatalog, type WaveDef } from '../content/schemas';
 import { createInitialState, createSimulation, type SimulationInput } from '../sim/simulation';
 import { secondsToTicks } from '../sim/time';
 import type { Outcome, SimState, SpawnCursor } from '../sim/types';
@@ -47,6 +47,20 @@ export class ScenarioBuilder {
   withOutcome(outcome: Outcome): this {
     this.state.outcome = outcome;
     return this;
+  }
+
+  /**
+   * Replaces the level's Waves, so a rule can be tested on Waves of its own instead of depending
+   * on how the bundled level is tuned.
+   */
+  withWaves(waves: WaveDef[]): this {
+    this.level = { ...this.level, waves: structuredClone(waves) };
+    return this;
+  }
+
+  /** Marks the level's last Wave as current with all of its enemies already spawned. */
+  atLastWave(): this {
+    return this.atWave(this.level.waves.length - 1);
   }
 
   /** Marks `index` as the current Wave with all of its enemies already spawned. */
