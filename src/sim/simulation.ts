@@ -7,11 +7,17 @@ import { moveProjectiles } from './systems/projectiles';
 import {
   canAfford,
   checkPlacement,
+  checkUpgrade,
   isSlotFree,
   placeTower,
+  sellTower,
+  sellValue,
   towersFire,
+  upgradeTower,
   type PlacementCheck,
   type PlaceTowerResult,
+  type SellTowerResult,
+  type UpgradeCheck,
 } from './systems/towers';
 import { canStartNextWave, spawnEnemies, startNextWave } from './systems/waves';
 import type { SimEvent, SimState } from './types';
@@ -41,9 +47,25 @@ export interface Simulation {
   canAfford(kind: string): boolean;
   /** Whether `slotId` is a Slot with no tower on it. */
   isSlotFree(slotId: string): boolean;
+  /** Raises a tower one level, paying for it; the towerUpgraded event arrives with the next advance. */
+  upgradeTower(towerId: number): UpgradeCheck;
+  /** Whether `upgradeTower(towerId)` would succeed now, and if not, why. Changes nothing. */
+  canUpgradeTower(towerId: number): UpgradeCheck;
+  /** Removes a tower and refunds its Sell value; the towerSold event arrives with the next advance. */
+  sellTower(towerId: number): SellTowerResult;
+  /** Gold `sellTower(towerId)` would return now; null if there is no such tower. */
+  sellValue(towerId: number): number | null;
 }
 
-export type { PlacementCheck, PlaceTowerFailure, PlaceTowerResult } from './systems/towers';
+export type {
+  PlacementCheck,
+  PlaceTowerFailure,
+  PlaceTowerResult,
+  SellTowerFailure,
+  SellTowerResult,
+  UpgradeCheck,
+  UpgradeTowerFailure,
+} from './systems/towers';
 
 export function createInitialState(level: LevelDef, seed: number): SimState {
   return {
@@ -100,5 +122,9 @@ export function createSimulation(input: SimulationInput): Simulation {
     canPlaceTower: (slotId, kind) => checkPlacement(state, ctx, slotId, kind),
     canAfford: (kind) => canAfford(state, ctx, kind),
     isSlotFree: (slotId) => isSlotFree(state, ctx, slotId),
+    upgradeTower: (towerId) => upgradeTower(state, ctx, towerId, pending),
+    canUpgradeTower: (towerId) => checkUpgrade(state, ctx, towerId),
+    sellTower: (towerId) => sellTower(state, ctx, towerId, pending),
+    sellValue: (towerId) => sellValue(state, ctx, towerId),
   };
 }

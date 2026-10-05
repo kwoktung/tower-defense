@@ -1,5 +1,5 @@
 import type * as Phaser from 'phaser';
-import type { LevelDef, UnitCatalog } from '../content/schemas';
+import { towerStats, type LevelDef, type UnitCatalog } from '../content/schemas';
 import { buildPath, poseAt, slotCenter } from '../sim/path';
 import type { SimState } from '../sim/types';
 
@@ -76,7 +76,7 @@ export function createDebugOverlay(
       ranges.lineStyle(1, COLOR, 0.8);
       for (const tower of state.towers) {
         const c = slotCenter(level, tower.slotId);
-        const def = units.towers[tower.kind];
+        const def = towerStats(units, tower.kind, tower.level);
         if (!c) continue;
         if (def) ranges.strokeCircle(c.x, c.y, def.range);
         const target = state.enemies.find((e) => e.id === tower.targetId);
@@ -85,7 +85,7 @@ export function createDebugOverlay(
           ranges.lineBetween(c.x, c.y, t.x, t.y);
         }
         seen.add(tower.id);
-        label(tower.id, c.x, c.y + 20, `#${tower.id} ${tower.kind}`);
+        label(tower.id, c.x, c.y + 20, `#${tower.id} ${tower.kind} L${tower.level}`);
       }
       for (const enemy of state.enemies) {
         const pose = poseAt(path, enemy.pathT);

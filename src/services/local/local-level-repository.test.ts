@@ -90,11 +90,16 @@ describe('local LevelRepository', () => {
   it('rejects a splash tower without a radius', async () => {
     const broken = {
       ...units,
-      towers: { bomb: { ...units.towers.basic, attack: { mode: 'splash' } } },
+      towers: {
+        bomb: {
+          name: 'bomb',
+          levels: [{ ...units.towers.basic!.levels[0], attack: { mode: 'splash' } }],
+        },
+      },
     };
 
     const message = await messageOf(repoWith({ units: broken }).getUnitCatalog());
 
-    expect(message).toContain('towers.bomb.attack.radius');
+    expect(message).toContain('towers.bomb.levels[0].attack.radius');
   });
 });

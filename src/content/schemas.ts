@@ -76,23 +76,32 @@ export const LevelDefSchema = z
     });
   });
 
+/** One Tower level's full stats. */
+const TowerLevelSchema = z.object({
+  /** Level 1: the build cost. Higher levels: the cost of upgrading to this level. */
+  cost: z.int().nonnegative(),
+  /** World units. */
+  range: z.number().positive(),
+  damage: z.number().positive(),
+  cooldownSec: z.number().positive(),
+  /** World units per second. */
+  projectileSpeed: z.number().positive(),
+  attack: z.discriminatedUnion('mode', [
+    z.object({ mode: z.literal('single') }),
+    z.object({ mode: z.literal('splash'), radius: z.number().positive() }),
+  ]),
+});
+
 export const UnitCatalogSchema = z.object({
+  /** Share of everything spent on a Tower that selling it returns (its Sell value). */
+  sellRefundRatio: z.number().min(0).max(1),
   towers: z.record(
     z.string().min(1),
     z.object({
       /** Shown on the HUD build button. */
       name: z.string().min(1),
-      cost: z.int().nonnegative(),
-      /** World units. */
-      range: z.number().positive(),
-      damage: z.number().positive(),
-      cooldownSec: z.number().positive(),
-      /** World units per second. */
-      projectileSpeed: z.number().positive(),
-      attack: z.discriminatedUnion('mode', [
-        z.object({ mode: z.literal('single') }),
-        z.object({ mode: z.literal('splash'), radius: z.number().positive() }),
-      ]),
+      /** Stats per Tower level; `levels[0]` is level 1. No art: Skins decide looks (ADR-0002). */
+      levels: z.array(TowerLevelSchema).min(1),
     }),
   ),
   enemies: z.record(
@@ -111,9 +120,25 @@ export type LevelDef = z.infer<typeof LevelDefSchema>;
 export type UnitCatalog = z.infer<typeof UnitCatalogSchema>;
 export type EnemyDef = UnitCatalog['enemies'][string];
 export type TowerDef = UnitCatalog['towers'][string];
+export type TowerLevelDef = TowerDef['levels'][number];
 export type WaveDef = LevelDef['waves'][number];
 export type SlotDef = LevelDef['slots'][number];
 export type Cell = z.infer<typeof CellSchema>;
+
+/** Stats of a `kind` Tower at `level` (1-based); undefined for unknown kinds or levels. */
+export function towerStats(
+  units: UnitCatalog,
+  kind: string,
+  level: number,
+): TowerLevelDef | undefined {
+  return units.towers[kind]?.levels[level - 1];
+}
+
+/** Gold spent on a `kind` Tower that has reached `level`: build cost plus every upgrade. */
+export function towerInvestment(units: UnitCatalog, kind: string, level: number): number {
+  const levels = units.towers[kind]?.levels.slice(0, level) ?? [];
+  return levels.reduce((sum, l) => sum + l.cost, 0);
+}
 
 export class ContentError extends Error {
   override name = 'ContentError';

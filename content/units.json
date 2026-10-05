@@ -1,27 +1,63 @@
 {
+  "sellRefundRatio": 0.7,
   "towers": {
     "basic": {
       "name": "基础塔",
-      "cost": 50,
-      "range": 160,
-      "damage": 10,
-      "cooldownSec": 0.5,
-      "projectileSpeed": 480,
-      "attack": {
-        "mode": "single"
-      }
+      "levels": [
+        {
+          "cost": 50,
+          "range": 160,
+          "damage": 10,
+          "cooldownSec": 0.5,
+          "projectileSpeed": 480,
+          "attack": { "mode": "single" }
+        },
+        {
+          "cost": 40,
+          "range": 168,
+          "damage": 17,
+          "cooldownSec": 0.45,
+          "projectileSpeed": 480,
+          "attack": { "mode": "single" }
+        },
+        {
+          "cost": 70,
+          "range": 176,
+          "damage": 26,
+          "cooldownSec": 0.4,
+          "projectileSpeed": 520,
+          "attack": { "mode": "single" }
+        }
+      ]
     },
     "splash": {
       "name": "溅射塔",
-      "cost": 80,
-      "range": 128,
-      "damage": 8,
-      "cooldownSec": 1.2,
-      "projectileSpeed": 320,
-      "attack": {
-        "mode": "splash",
-        "radius": 48
-      }
+      "levels": [
+        {
+          "cost": 80,
+          "range": 128,
+          "damage": 8,
+          "cooldownSec": 1.2,
+          "projectileSpeed": 320,
+          "attack": { "mode": "splash", "radius": 48 }
+        },
+        {
+          "cost": 60,
+          "range": 136,
+          "damage": 14,
+          "cooldownSec": 1.2,
+          "projectileSpeed": 320,
+          "attack": { "mode": "splash", "radius": 56 }
+        },
+        {
+          "cost": 100,
+          "range": 144,
+          "damage": 24,
+          "cooldownSec": 1.1,
+          "projectileSpeed": 360,
+          "attack": { "mode": "splash", "radius": 64 }
+        }
+      ]
     }
   },
   "enemies": {

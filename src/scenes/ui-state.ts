@@ -1,4 +1,4 @@
-import type { UnitCatalog } from '../content/schemas';
+import { towerStats, type UnitCatalog } from '../content/schemas';
 import type { SlotHover } from '../render/skin';
 import type { Simulation } from '../sim/simulation';
 
@@ -23,6 +23,6 @@ export function slotHoverFor(
   selectedTower: string | null,
 ): SlotHover | null {
   if (!slotId || !sim.isSlotFree(slotId)) return null;
-  const range = selectedTower ? (sim.units.towers[selectedTower]?.range ?? null) : null;
+  const range = selectedTower ? (towerStats(sim.units, selectedTower, 1)?.range ?? null) : null;
   return { slotId, rangePreview: range };
 }
