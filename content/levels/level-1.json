@@ -93,7 +93,7 @@
       "row": 6
     }
   ],
-  "startGold": 120,
+  "startGold": 140,
   "startLives": 10,
   "waves": [
     {
@@ -101,21 +101,7 @@
         {
           "kind": "normal",
           "count": 8,
-          "intervalSec": 0.8
-        }
-      ]
-    },
-    {
-      "groups": [
-        {
-          "kind": "normal",
-          "count": 10,
-          "intervalSec": 0.7
-        },
-        {
-          "kind": "fast",
-          "count": 6,
-          "intervalSec": 0.5
+          "intervalSec": 0.9
         }
       ]
     },
@@ -124,12 +110,69 @@
         {
           "kind": "normal",
           "count": 14,
-          "intervalSec": 0.6
+          "intervalSec": 0.55
         },
         {
           "kind": "fast",
           "count": 10,
-          "intervalSec": 0.4
+          "intervalSec": 0.35
+        }
+      ]
+    },
+    {
+      "groups": [
+        {
+          "kind": "normal",
+          "count": 16,
+          "intervalSec": 0.45
+        },
+        {
+          "kind": "armored",
+          "count": 5,
+          "intervalSec": 1.0
+        },
+        {
+          "kind": "fast",
+          "count": 14,
+          "intervalSec": 0.3
+        }
+      ]
+    },
+    {
+      "groups": [
+        {
+          "kind": "fast",
+          "count": 26,
+          "intervalSec": 0.22
+        },
+        {
+          "kind": "armored",
+          "count": 10,
+          "intervalSec": 0.8
+        },
+        {
+          "kind": "normal",
+          "count": 26,
+          "intervalSec": 0.3
+        }
+      ]
+    },
+    {
+      "groups": [
+        {
+          "kind": "normal",
+          "count": 40,
+          "intervalSec": 0.25
+        },
+        {
+          "kind": "armored",
+          "count": 20,
+          "intervalSec": 0.6
+        },
+        {
+          "kind": "fast",
+          "count": 40,
+          "intervalSec": 0.16
         }
       ]
     }

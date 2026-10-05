@@ -1,4 +1,14 @@
+import { loadBundledLevel } from '../content/bundled';
 import { scenario, type Fixture } from './scenario';
+
+/** Index of the fast group in level 1's last Wave, which `finalWave` is caught spawning. */
+const LAST_WAVE_FAST_GROUP = (() => {
+  const index = loadBundledLevel('level-1')
+    .waves.at(-1)!
+    .groups.findIndex((g) => g.kind === 'fast');
+  if (index < 0) throw new Error("finalWave: level 1's last Wave has no fast group");
+  return index;
+})();
 
 /** Slots for `allTowerLevels`: one row per tower kind, one Slot per level. */
 const ALL_LEVELS_ROWS = [
@@ -147,16 +157,16 @@ export const fixtures = {
       .withTower('basic', 'slot-6')
       .withTower('splash', 'slot-5')
       .withTower('splash', 'slot-10')
-      .atWave(2)
+      .atLastWave()
       .withEnemies('normal', 6, { atPathT: 1700, spacing: 40, hpRatio: 0.6 })
       .withEnemies('fast', 4, { atPathT: 900, spacing: 30 })
-      .withSpawning({ groupIndex: 1, spawnedInGroup: 4, cooldownTicks: 10 })
+      .withSpawning({ groupIndex: LAST_WAVE_FAST_GROUP, spawnedInGroup: 4, cooldownTicks: 10 })
       .build(),
 
   /** The game just won: the last Wave cleared with towers still standing. */
   won: (): Fixture =>
     scenario()
-      .atWave(2)
+      .atLastWave()
       .withLives(7)
       .withGold(85)
       .withTower('basic', 'slot-3')

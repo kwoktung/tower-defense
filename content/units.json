@@ -34,7 +34,7 @@
       "name": "溅射塔",
       "levels": [
         {
-          "cost": 80,
+          "cost": 70,
           "range": 128,
           "damage": 8,
           "cooldownSec": 1.2,
@@ -106,11 +106,11 @@
       "leakDamage": 1
     },
     "armored": {
-      "hp": 60,
+      "hp": 80,
       "speed": 48,
       "reward": 10,
       "leakDamage": 2,
-      "armor": 6
+      "armor": 8
     }
   }
 }
