@@ -12,25 +12,24 @@ export function moveProjectiles(state: SimState, ctx: SimContext, events: SimEve
     const target = state.enemies.find((e) => e.id === projectile.targetId);
     if (target) {
       const pose = poseAt(ctx.path, target.pathT);
-      projectile.targetX = pose.x;
-      projectile.targetY = pose.y;
+      projectile.destination = { x: pose.x, y: pose.y };
     } else {
       projectile.targetId = null;
     }
 
     const def = ctx.units.towers[projectile.kind]!;
     const step = def.projectileSpeed / TICK_RATE;
-    const dx = projectile.targetX - projectile.x;
-    const dy = projectile.targetY - projectile.y;
+    const { position, destination } = projectile;
+    const dx = destination.x - position.x;
+    const dy = destination.y - position.y;
     const distance = Math.hypot(dx, dy);
     if (distance > step) {
-      projectile.x += (dx / distance) * step;
-      projectile.y += (dy / distance) * step;
+      position.x += (dx / distance) * step;
+      position.y += (dy / distance) * step;
       return true;
     }
 
-    projectile.x = projectile.targetX;
-    projectile.y = projectile.targetY;
+    projectile.position = { ...destination };
     hit(projectile, target, state, ctx, events);
     return false;
   });
@@ -44,7 +43,7 @@ function hit(
   events: SimEvent[],
 ): void {
   const { attack, damage } = ctx.units.towers[projectile.kind]!;
-  const { x, y } = projectile;
+  const { x, y } = projectile.position;
 
   let victims: Enemy[];
   if (attack.mode === 'splash') {

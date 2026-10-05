@@ -1,6 +1,6 @@
 import type * as Phaser from 'phaser';
 import type { LevelDef } from '../../../content/schemas';
-import { buildPath, cellCenter } from '../../../sim/path';
+import { buildPath, slotCenter } from '../../../sim/path';
 import { colorNumber, type MapView, type Skin, type SkinTheme, type SlotHover } from '../../skin';
 import { playEffect } from './effects';
 import { createEnemyView } from './enemy-view';
@@ -62,9 +62,8 @@ function createMap(scene: Phaser.Scene, level: LevelDef): MapView {
     const hovered = hover?.slotId ?? null;
     slots.clear();
     range.clear();
-    const hoveredSlot = level.slots.find((s) => s.id === hovered);
-    if (hoveredSlot && hover?.rangePreview) {
-      const c = cellCenter(hoveredSlot, tileSize);
+    const c = hovered ? slotCenter(level, hovered) : undefined;
+    if (c && hover?.rangePreview) {
       range.fillStyle(colorNumber(palette.rangePreview), 0.12);
       range.fillCircle(c.x, c.y, hover.rangePreview);
       range.lineStyle(1, colorNumber(palette.rangePreview), 0.6);

@@ -1,6 +1,6 @@
 import type * as Phaser from 'phaser';
 import type { LevelDef, UnitCatalog } from '../content/schemas';
-import { buildPath, cellCenter, poseAt } from '../sim/path';
+import { buildPath, poseAt, slotCenter } from '../sim/path';
 import type { SimState } from '../sim/types';
 
 /** Fixed, skin-independent look so debug marks never read as game content. */
@@ -76,10 +76,9 @@ export function createDebugOverlay(
       ranges.clear();
       ranges.lineStyle(1, COLOR, 0.8);
       for (const tower of state.towers) {
-        const slot = level.slots.find((s) => s.id === tower.slotId);
+        const c = slotCenter(level, tower.slotId);
         const def = units.towers[tower.kind];
-        if (!slot) continue;
-        const c = cellCenter(slot, tileSize);
+        if (!c) continue;
         if (def) ranges.strokeCircle(c.x, c.y, def.range);
         const target = state.enemies.find((e) => e.id === tower.targetId);
         if (target) {
@@ -96,7 +95,8 @@ export function createDebugOverlay(
       }
       for (const projectile of state.projectiles) {
         seen.add(projectile.id);
-        label(projectile.id, projectile.x, projectile.y + 6, `#${projectile.id}`);
+        const { x, y } = projectile.position;
+        label(projectile.id, x, y + 6, `#${projectile.id}`);
       }
       for (const [id, text] of labels) {
         if (!seen.has(id)) {

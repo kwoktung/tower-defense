@@ -1,3 +1,5 @@
+import type { Point } from './path';
+
 export type Outcome = 'playing' | 'won' | 'lost';
 
 export interface Enemy {
@@ -27,10 +29,10 @@ export interface Projectile {
   towerId: number;
   /** Null once the target has died or leaked. */
   targetId: number | null;
-  x: number;
-  y: number;
-  targetX: number;
-  targetY: number;
+  /** Where the projectile is now, in world units. */
+  position: Point;
+  /** Where it is flying: the target's position, or its last known one once the target is gone. */
+  destination: Point;
 }
 
 /** Where the current Wave is in its spawn groups. */

@@ -40,8 +40,8 @@ export const SplashExplosion: Story = {
         {
           type: 'projectileHit',
           projectileId: projectile.id,
-          x: projectile.targetX,
-          y: projectile.targetY,
+          x: projectile.destination.x,
+          y: projectile.destination.y,
           splashRadius: radius.radius,
         },
       ],

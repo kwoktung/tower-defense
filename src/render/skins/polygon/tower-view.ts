@@ -1,5 +1,5 @@
 import type * as Phaser from 'phaser';
-import { cellCenter } from '../../../sim/path';
+import { slotCenter } from '../../../sim/path';
 import type { Tower } from '../../../sim/types';
 import { colorNumber, type EntityView } from '../../skin';
 import { palette } from './palette';
@@ -46,10 +46,8 @@ export function createTowerView(scene: Phaser.Scene, kind: string): EntityView<T
 
   return {
     sync(tower, { level }) {
-      const slot = level.slots.find((s) => s.id === tower.slotId);
-      if (!slot) return;
-      const c = cellCenter(slot, level.grid.tileSize);
-      body.setPosition(c.x, c.y);
+      const c = slotCenter(level, tower.slotId);
+      if (c) body.setPosition(c.x, c.y);
     },
     onEvent(event) {
       if (event.type !== 'towerFired') return;

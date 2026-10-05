@@ -1,5 +1,5 @@
 import type { SimContext } from '../context';
-import { cellCenter, poseAt, type Point } from '../path';
+import { poseAt, slotCenter, type Point } from '../path';
 import { secondsToTicks } from '../time';
 import type { Enemy, SimEvent, SimState, Tower } from '../types';
 
@@ -62,9 +62,9 @@ export function placeTower(
   return { ok: true, id };
 }
 
+/** Towers only stand on existing Slots (placeTower and Fixtures check), so the centre always exists. */
 export function towerPosition(tower: Tower, ctx: SimContext): Point {
-  const slot = ctx.level.slots.find((s) => s.id === tower.slotId)!;
-  return cellCenter(slot, ctx.level.grid.tileSize);
+  return slotCenter(ctx.level, tower.slotId)!;
 }
 
 /** The enemy in range that has travelled furthest along the Path, if any. */
@@ -97,10 +97,8 @@ export function towersFire(state: SimState, ctx: SimContext, events: SimEvent[])
       kind: tower.kind,
       towerId: tower.id,
       targetId: target.id,
-      x: from.x,
-      y: from.y,
-      targetX: to.x,
-      targetY: to.y,
+      position: { x: from.x, y: from.y },
+      destination: { x: to.x, y: to.y },
     });
     tower.cooldownTicks = secondsToTicks(def.cooldownSec);
     events.push({ type: 'towerFired', towerId: tower.id, projectileId: id, targetId: target.id });
