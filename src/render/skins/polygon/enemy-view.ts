@@ -2,45 +2,33 @@ import type * as Phaser from 'phaser';
 import { poseAt } from '../../../sim/path';
 import type { Enemy } from '../../../sim/types';
 import { colorNumber, type EntityView } from '../../skin';
-import { palette } from './palette';
+import { enemyColor, palette } from './palette';
 import { fillPolygon } from './shapes';
 
-interface EnemyShape {
-  color: string;
-  /** Outline points around the origin, facing +x. */
-  points: [number, number][];
-}
+/** Outline points around the origin, facing +x. Colours come from `enemyColor`. */
+type EnemyOutline = [number, number][];
 
-const SHAPES: Record<string, EnemyShape> = {
-  normal: {
-    color: palette.enemyNormal,
-    points: [
-      [14, 0],
-      [0, 12],
-      [-14, 0],
-      [0, -12],
-    ],
-  },
-  fast: {
-    color: palette.enemyFast,
-    points: [
-      [12, 0],
-      [-8, 8],
-      [-8, -8],
-    ],
-  },
+const OUTLINES: Record<string, EnemyOutline> = {
+  normal: [
+    [14, 0],
+    [0, 12],
+    [-14, 0],
+    [0, -12],
+  ],
+  fast: [
+    [12, 0],
+    [-8, 8],
+    [-8, -8],
+  ],
 };
 
 /** Unknown kinds still render, so new content shows up before its skin entry exists. */
-const FALLBACK: EnemyShape = {
-  color: palette.enemyUnknown,
-  points: [
-    [10, 0],
-    [0, 10],
-    [-10, 0],
-    [0, -10],
-  ],
-};
+const FALLBACK_OUTLINE: EnemyOutline = [
+  [10, 0],
+  [0, 10],
+  [-10, 0],
+  [0, -10],
+];
 
 const HIT_FLASH_MS = 80;
 const BAR_WIDTH = 24;
@@ -48,14 +36,14 @@ const BAR_HEIGHT = 4;
 const BAR_OFFSET_Y = -20;
 
 export function createEnemyView(scene: Phaser.Scene, kind: string): EntityView<Enemy> {
-  const shape = SHAPES[kind] ?? FALLBACK;
+  const outline = OUTLINES[kind] ?? FALLBACK_OUTLINE;
   const root = scene.add.container(0, 0).setDepth(10);
 
   const body = scene.add.graphics();
-  fillPolygon(body, shape.points, colorNumber(shape.color));
+  fillPolygon(body, outline, colorNumber(enemyColor(kind)));
 
   const flash = scene.add.graphics().setVisible(false);
-  fillPolygon(flash, shape.points, colorNumber(palette.hitFlash));
+  fillPolygon(flash, outline, colorNumber(palette.hitFlash));
   const bar = scene.add.graphics();
   root.add([body, flash, bar]);
   let flashTimer: Phaser.Time.TimerEvent | null = null;
