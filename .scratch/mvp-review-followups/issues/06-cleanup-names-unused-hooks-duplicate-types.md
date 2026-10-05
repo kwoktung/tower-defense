@@ -43,3 +43,16 @@
     - 改动前后各一次完整 Shots，94/94 张逐字节一致。
     - AGENTS.md、CONTEXT.md、ADR 里都没有提到被删掉的 API。
   - **范围之外，留作记录**：`MapView.destroy` 同样没有调用方（场景里也是靠 Phaser 统一销毁），但它不在本 ticket 列出的三项里，所以没有动。如果要做，可以按同样的方式删除。
+- 2026-10-05 补充核查（应用户要求，确认删掉 `destroy` 后没有内存泄漏）。
+  - **源码依据**（Phaser 4.2.1）：
+    - 重启的路径：`ScenePlugin.restart` 是先 stop 再 start；`launch` 遇到正在运行的场景会先 shutdown。所以每次重来都会走场景的 shutdown。
+    - `DisplayList.shutdown` 会对每个顶层对象调用 `destroy(true)`。Container 默认是 exclusive 的，销毁时会连带销毁子对象。
+    - `InputPlugin.shutdown` 和 `KeyboardPlugin.shutdown` 都会调用 `removeAllListeners()`。
+    - `Clock.shutdown` 会销毁所有计时器，`TweenManager.shutdown` 会调用 `killAll()`。
+    - 唯一不会被自动清掉的，是用户自己在场景事件上注册的监听（`Systems.shutdown` 只移除 transition 相关的监听）。我们的游戏代码没有注册这类监听；只有 Storybook 的 fixture story 注册过一个 `update` 监听，而 story 的 game 会整个 destroy，`Systems.destroy` 会对场景事件调用 `removeAllListeners()`。
+  - **实测**（dev 页面，开启 Debug overlay）：
+    - 一共重启 200 次。每轮都先造 3 座塔、开波、塞进 8 个敌人，在局面最忙的时候重启：最多有 2 发子弹在飞、1 个受击闪白计时器在走、2 个 tween 在播放、9 个敌人在场。
+    - 第 1、10、25、50、100、200 次重启后，以下计数每次都完全相同：Game 场景 3 个显示对象、2 个输入监听、1 个键盘监听、47 个场景事件监听，tween 和计时器都是 0；Hud 场景 1 个显示对象；game 级事件 19 个监听；1 个 canvas。
+    - 堆快照（拍摄前会强制 GC）对比：第 50、100、200 次重启后，Graphics 一直是 11 个，Container 10 个，Text 38 个，WorldRenderer 1 个，ViewSet 3 个，canvas 和 WebGL context 各 1 个，Tween 和 TimerEvent 都是 0。
+    - 普通 Object 和 Array：第 50 到 100 次重启之间多了 84 个和 28 个；第 100 到 200 次之间都是 0。增长没有随重启次数累积，所以判断是一次性的预热分配，不是泄漏。
+  - **结论**：删掉 WorldRenderer、HUD、Debug overlay 的 `destroy` 不会导致泄漏，旧局的对象在重启后都被回收了。
