@@ -260,4 +260,5 @@ Status: done
 - 截至 2026-10，npm 上 phaser 的 latest 版本是 4.2.1（正式版），Storybook 是 10.6.x。生态里没有专门的 Phaser + Storybook 集成包，所以挂载辅助函数需要自己写，代码量很小。
 - WebGL context 数量有上限（浏览器一般约 16 个）。挂载辅助函数必须保证销毁，这是验收的一部分：连续切换 30 个 story 不出现 context 警告。
 - 判断骨架是否真的方便扩充的标准是：新增一种攻击方式已有的塔，只需要改配置、皮肤、story 三处，不改 Simulation。
+- **实现与上文"Phaser 场景"一节的差异**：Boot 场景只启动 Game 场景；HUD 场景由 Game 场景在每次创建时（包括"重来"）通过 `launch` 并行启动，`launch` 会把正在运行的 HUD 关掉，再用新的 Simulation 重新启动。这样 HUD 总是绑定到 Game 当前的 Simulation，"重来"时不用由 Boot 再介入。结束浮层也放在 HUD 里（见 ticket 03 的评论），好盖住 HUD 栏。
 - 建议的实现顺序是：工程脚手架和文档 → 配置 schema 和数据服务 → Simulation（路径、出怪、漏怪、胜负）→ Simulation（塔、子弹、溅射、经济）→ 渲染核心和 Storybook → Debug overlay 和 Shots → Scenario story → 可玩游戏（Boot、Game、HUD 场景）→ story 冒烟测试和收尾。下一步可以用 to-tickets 把它拆成独立的 issue。

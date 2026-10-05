@@ -1,7 +1,11 @@
 import { TICK_RATE } from './sim/time';
 
 const TICK_MS = 1000 / TICK_RATE;
-/** Upper bound on catch-up after a stall (e.g. a background tab), so one frame never runs minutes of game. */
+/**
+ * Upper bound on catch-up after a stall (e.g. a background tab), so one frame never runs minutes
+ * of game. When a frame hits the cap the leftover time is dropped, so below about 4 fps
+ * (15 ticks = 250 ms per frame) game time runs slower than real time. See ADR-0001.
+ */
 const MAX_TICKS_PER_FRAME = 15;
 
 /** Converts variable frame times into a whole number of fixed Simulation ticks. */
