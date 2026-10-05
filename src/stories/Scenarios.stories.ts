@@ -46,6 +46,8 @@ const timeline = (...ticks: number[]): { parameters: { shots: ShotsParameters } 
 export const EmptyMap: Story = { args: { fixture: 'emptyMap' } };
 export const OneOfEachEnemy: Story = { args: { fixture: 'oneOfEachEnemy' } };
 export const OneOfEachTower: Story = { args: { fixture: 'oneOfEachTower' } };
+/** The skin acceptance page: every tower kind at every level (ADR-0002). */
+export const AllTowerLevels: Story = { args: { fixture: 'allTowerLevels' } };
 export const BasicTowerFiring: Story = {
   args: { fixture: 'basicTowerFiring' },
   ...timeline(0, 10, 40, 90),

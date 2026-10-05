@@ -42,6 +42,17 @@ export const fixtures = {
   oneOfEachTower: (): Fixture =>
     scenario().withTower('basic', 'slot-2').withTower('splash', 'slot-3').build(),
 
+  /** Every tower kind at every level: basic levels 1–3 along the top row, splash along the bottom. */
+  allTowerLevels: (): Fixture =>
+    scenario()
+      .withTower('basic', 'slot-1', 1)
+      .withTower('basic', 'slot-2', 2)
+      .withTower('basic', 'slot-3', 3)
+      .withTower('splash', 'slot-9', 1)
+      .withTower('splash', 'slot-10', 2)
+      .withTower('splash', 'slot-11', 3)
+      .build(),
+
   /** A level-1 basic tower with gold for its upgrade, during a Wave (open its panel in stories). */
   towerSelected: (): Fixture =>
     scenario()

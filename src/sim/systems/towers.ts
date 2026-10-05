@@ -132,7 +132,8 @@ export function sellTower(
   state.gold += refund;
   state.towers = state.towers.filter((t) => t !== tower);
   const { id, kind, level, slotId } = tower;
-  events.push({ type: 'towerSold', id, kind, level, slotId, refund });
+  const { x, y } = towerPosition(tower, ctx);
+  events.push({ type: 'towerSold', id, kind, level, slotId, refund, x, y });
   return { ok: true, refund };
 }
 
