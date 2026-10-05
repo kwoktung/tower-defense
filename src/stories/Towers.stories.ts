@@ -33,7 +33,7 @@ export const SplashIdle: Story = { ...Idle, args: { kind: 'splash' } };
 export const HoverRangePreview: Story = {
   render: (args) =>
     mountFixtureStory(args, scenario().build(), {
-      ui: { selectedTower: args.kind, hoverSlot: SLOT },
+      ui: { buildKind: args.kind, hoverSlot: SLOT },
       camera: { focus: { slotId: SLOT }, zoom: 2 },
     }),
 };

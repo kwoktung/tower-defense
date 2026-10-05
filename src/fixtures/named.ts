@@ -42,6 +42,23 @@ export const fixtures = {
   oneOfEachTower: (): Fixture =>
     scenario().withTower('basic', 'slot-2').withTower('splash', 'slot-3').build(),
 
+  /** A level-1 basic tower with gold for its upgrade, during a Wave (open its panel in stories). */
+  towerSelected: (): Fixture =>
+    scenario()
+      .atWave(0)
+      .withGold(120)
+      .withTower('basic', 'slot-3')
+      .withEnemies('normal', 3, { atPathT: 560, spacing: 48 })
+      .build(),
+
+  /** A level-2 basic tower whose next upgrade the gold doesn't cover. */
+  towerSelectedLowGold: (): Fixture =>
+    scenario().withGold(20).withTower('basic', 'slot-6', 2).build(),
+
+  /** A top-level splash tower near the right edge, so its panel opens to the left. */
+  towerSelectedMaxLevel: (): Fixture =>
+    scenario().withGold(500).withTower('splash', 'slot-4', 3).build(),
+
   /** A group of enemies about to reach the end of the Path. */
   enemyLeaking: (): Fixture =>
     scenario()

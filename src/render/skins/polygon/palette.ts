@@ -24,6 +24,7 @@ export const palette = {
   buttonHover: '#475569',
   buttonDisabled: '#1f2937',
   selection: '#fbbf24',
+  danger: '#f87171',
   overlay: '#000000',
 } as const;
 

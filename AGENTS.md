@@ -30,7 +30,7 @@ Shot file names: `<story-id>.png`, `<story-id>--debug.png` (Debug overlay on), a
 
 The URL params are development and debugging aids, not player features: `?skin=` picks a registered Skin, `?debug` starts with the Debug overlay on, and `?level=` loads another bundled level by id. Level selection for players is still out of MVP scope — don't build UI on `?level`.
 
-In game, press `D` to toggle the Debug overlay. In dev builds the running game is on `window.__GAME__`; e.g. `__GAME__.scene.getScene('Game').sim.state` reads the live SimState from DevTools or the Chrome MCP tools.
+In game, press `D` to toggle the Debug overlay. In dev builds the running game is on `window.__GAME__`; e.g. `__GAME__.scene.getScene('Game').runner.sim.state` reads the live SimState from DevTools or the Chrome MCP tools.
 
 ## Working conventions
 
