@@ -15,8 +15,8 @@
         {
           "cost": 40,
           "range": 168,
-          "damage": 17,
-          "cooldownSec": 0.45,
+          "damage": 20,
+          "cooldownSec": 0.5,
           "projectileSpeed": 480,
           "attack": { "mode": "single" }
         },
@@ -47,15 +47,15 @@
           "damage": 14,
           "cooldownSec": 1.2,
           "projectileSpeed": 320,
-          "attack": { "mode": "splash", "radius": 56 }
+          "attack": { "mode": "splash", "radius": 48 }
         },
         {
           "cost": 100,
-          "range": 144,
-          "damage": 24,
-          "cooldownSec": 1.1,
+          "range": 136,
+          "damage": 20,
+          "cooldownSec": 1.2,
           "projectileSpeed": 360,
-          "attack": { "mode": "splash", "radius": 64 }
+          "attack": { "mode": "splash", "radius": 50 }
         }
       ]
     }

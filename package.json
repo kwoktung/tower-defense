@@ -15,7 +15,8 @@
     "build-storybook": "storybook build",
     "test:unit": "vitest run --project unit",
     "test:stories": "vitest run --project storybook",
-    "shots": "node scripts/shots.ts"
+    "shots": "node scripts/shots.ts",
+    "balance": "BALANCE=1 vitest run --project unit src/sim/balance.test.ts"
   },
   "dependencies": {
     "phaser": "^4.2.1",
