@@ -3,7 +3,7 @@ import { poseAt } from '../../../sim/path';
 import type { Enemy } from '../../../sim/types';
 import { colorNumber, type EntityView } from '../../skin';
 import { enemyColor, palette } from './palette';
-import { fillPolygon } from './shapes';
+import { fillPolygon, strokePolygon } from './shapes';
 
 /** Outline points around the origin, facing +x. Colours come from `enemyColor`. */
 type EnemyOutline = [number, number][];
@@ -20,9 +20,17 @@ const OUTLINES: Record<string, EnemyOutline> = {
     [-8, 8],
     [-8, -8],
   ],
+  /** Bigger and blunter than `normal`: a slow, heavy octagon. */
+  armored: Array.from({ length: 8 }, (_, i): [number, number] => {
+    const a = (i / 8) * Math.PI * 2 + Math.PI / 8;
+    return [Math.cos(a) * 15, Math.sin(a) * 15];
+  }),
 };
 
-/** Unknown kinds still render, so new content shows up before its skin entry exists. */
+/** Kinds drawn with the armour outline. */
+const ARMORED = new Set(['armored']);
+
+/** Unknown kinds still render (reporting the gap), so new content shows up before its look exists. */
 const FALLBACK_OUTLINE: EnemyOutline = [
   [10, 0],
   [0, 10],
@@ -36,11 +44,13 @@ const BAR_HEIGHT = 4;
 const BAR_OFFSET_Y = -20;
 
 export function createEnemyView(scene: Phaser.Scene, kind: string): EntityView<Enemy> {
+  if (!OUTLINES[kind]) console.error(`Polygon skin has no look for enemy kind "${kind}"`);
   const outline = OUTLINES[kind] ?? FALLBACK_OUTLINE;
   const root = scene.add.container(0, 0).setDepth(10);
 
   const body = scene.add.graphics();
   fillPolygon(body, outline, colorNumber(enemyColor(kind)));
+  if (ARMORED.has(kind)) strokePolygon(body, outline, 3, colorNumber(palette.armorTrim));
 
   const flash = scene.add.graphics().setVisible(false);
   fillPolygon(flash, outline, colorNumber(palette.hitFlash));

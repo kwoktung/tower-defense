@@ -48,6 +48,11 @@ export const OneOfEachEnemy: Story = { args: { fixture: 'oneOfEachEnemy' } };
 export const OneOfEachTower: Story = { args: { fixture: 'oneOfEachTower' } };
 /** The skin acceptance page: every tower kind at every level (ADR-0002). */
 export const AllTowerLevels: Story = { args: { fixture: 'allTowerLevels' } };
+/** Armor: the level-1 tower's hits barely dent the armored line; the top-level one cuts through. */
+export const ArmoredWave: Story = {
+  args: { fixture: 'armoredWave' },
+  ...timeline(0, 600, 1100, 1500),
+};
 /** Gold on more towers vs on one upgrade: same pack, compare the timelines (ticket 04). */
 export const SpentOnTowers: Story = {
   args: { fixture: 'spentOnTowers' },

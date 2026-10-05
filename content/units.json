@@ -72,6 +72,13 @@
       "speed": 128,
       "reward": 4,
       "leakDamage": 1
+    },
+    "armored": {
+      "hp": 60,
+      "speed": 48,
+      "reward": 10,
+      "leakDamage": 2,
+      "armor": 6
     }
   }
 }

@@ -23,12 +23,13 @@ describe('local LevelRepository', () => {
     const level = await levels.getLevel('level-1');
     const catalog = await levels.getUnitCatalog();
 
+    // Compared with the bundled files, so adding content doesn't break this test.
     expect(level.id).toBe('level-1');
-    expect(level.grid).toEqual({ cols: 15, rows: 10, tileSize: 64 });
-    expect(level.slots).toHaveLength(12);
-    expect(level.waves).toHaveLength(3);
-    expect(Object.keys(catalog.enemies)).toEqual(['normal', 'fast']);
-    expect(Object.keys(catalog.towers)).toEqual(['basic', 'splash']);
+    expect(level.grid).toEqual(level1.grid);
+    expect(level.slots).toHaveLength(level1.slots.length);
+    expect(level.waves).toHaveLength(level1.waves.length);
+    expect(Object.keys(catalog.enemies)).toEqual(Object.keys(units.enemies));
+    expect(Object.keys(catalog.towers)).toEqual(Object.keys(units.towers));
   });
 
   it('rejects an unknown level id', async () => {

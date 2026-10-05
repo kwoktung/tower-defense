@@ -53,6 +53,18 @@ export const fixtures = {
       .withTower('splash', 'slot-11', 3)
       .build(),
 
+  /**
+   * A line of armored enemies walking past a level-1 basic tower (slot-3) and then a top-level
+   * one (slot-7): the level-1 shots barely dent them.
+   */
+  armoredWave: (): Fixture =>
+    scenario()
+      .atWave(2)
+      .withTower('basic', 'slot-3', 1)
+      .withTower('basic', 'slot-7', 3)
+      .withEnemies('armored', 5, { atPathT: 300, spacing: 56 })
+      .build(),
+
   /** About 150 gold spent on three level-1 basic towers, facing a dense pack. Compare with spentOnUpgrade. */
   spentOnTowers: (): Fixture =>
     scenario()

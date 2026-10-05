@@ -48,6 +48,9 @@ export const FastDamaged: Story = { args: { kind: 'fast', pathT: 860, hpRatio: 0
 /** The white hit flash, frozen. */
 export const NormalHit: Story = { args: { hit: true, hpRatio: 0.6 } };
 export const FastHit: Story = { args: { kind: 'fast', pathT: 860, hit: true, hpRatio: 0.6 } };
+/** Darker, bigger octagon with a grey armour outline. */
+export const Armored: Story = { args: { kind: 'armored' } };
+export const ArmoredHit: Story = { args: { kind: 'armored', hit: true, hpRatio: 0.6 } };
 
 const KILL_SLOT = 'slot-3';
 
