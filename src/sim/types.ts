@@ -104,7 +104,15 @@ export type SimEvent =
       y: number;
     }
   | { type: 'towerFired'; towerId: number; projectileId: number; targetId: number }
-  | { type: 'projectileHit'; projectileId: number; x: number; y: number; splashRadius?: number }
+  | {
+      type: 'projectileHit';
+      projectileId: number;
+      /** Kind of the tower that fired it, so a Skin can show whose shot landed. */
+      kind: string;
+      x: number;
+      y: number;
+      splashRadius?: number;
+    }
   | { type: 'enemySpawned'; id: number; kind: string }
   | { type: 'enemyDamaged'; id: number; amount: number }
   | { type: 'enemyKilled'; id: number; kind: string; reward: number; x: number; y: number }

@@ -48,6 +48,16 @@ export const OneOfEachEnemy: Story = { args: { fixture: 'oneOfEachEnemy' } };
 export const OneOfEachTower: Story = { args: { fixture: 'oneOfEachTower' } };
 /** The skin acceptance page: every tower kind at every level (ADR-0002). */
 export const AllTowerLevels: Story = { args: { fixture: 'allTowerLevels' } };
+/**
+ * The same acceptance pages in the fruit skin, so the story smoke test (no console.error) also
+ * catches a missing fruit look (ADR-0002).
+ */
+export const AllTowerLevelsFruit: Story = { args: { fixture: 'allTowerLevels', skin: 'fruit' } };
+export const OneOfEachEnemyFruit: Story = { args: { fixture: 'oneOfEachEnemy', skin: 'fruit' } };
+export const ArmoredWaveFruit: Story = {
+  args: { fixture: 'armoredWave', skin: 'fruit' },
+  ...timeline(0, 1100),
+};
 /** Armor: the level-1 tower's hits barely dent the armored line; the top-level one cuts through. */
 export const ArmoredWave: Story = {
   args: { fixture: 'armoredWave' },

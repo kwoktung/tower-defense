@@ -6,6 +6,7 @@
  *   pnpm shots                 build Storybook, shoot every story
  *   pnpm shots map             only stories whose id or title contains "map"
  *   pnpm shots --skip-build    reuse the existing storybook-static build
+ *   pnpm shots --skin=fruit    render with another Skin; files get a `--fruit` suffix
  */
 import { spawnSync } from 'node:child_process';
 import { createReadStream, existsSync, mkdirSync, readFileSync, rmSync, statSync } from 'node:fs';
@@ -29,6 +30,7 @@ interface IndexEntry {
 const args = process.argv.slice(2);
 const skipBuild = args.includes('--skip-build');
 const filter = args.find((a) => !a.startsWith('--'))?.toLowerCase();
+const skin = args.find((a) => a.startsWith('--skin='))?.slice('--skin='.length);
 
 if (!skipBuild || !existsSync(STATIC_DIR)) {
   console.log('Building Storybook…');
@@ -53,7 +55,7 @@ if (stories.length === 0) {
 }
 
 // A full run replaces the folder so screenshots of deleted stories don't linger.
-if (!filter) rmSync(OUT_DIR, { recursive: true, force: true });
+if (!filter && !skin) rmSync(OUT_DIR, { recursive: true, force: true });
 mkdirSync(OUT_DIR, { recursive: true });
 
 const server = await serve(STATIC_DIR);
@@ -65,8 +67,8 @@ const failures: string[] = [];
 
 /** Loads one story variant, waits for its first frame and screenshots the canvas. */
 async function shoot(storyId: string, args: Record<string, string>, suffix: string) {
-  const file = path.join(OUT_DIR, `${storyId}${suffix}.png`);
-  const argString = Object.entries(args)
+  const file = path.join(OUT_DIR, `${storyId}${skin ? `--${skin}` : ''}${suffix}.png`);
+  const argString = Object.entries(skin ? { ...args, skin } : args)
     .map(([k, v]) => `${k}:${v}`)
     .join(';');
   try {

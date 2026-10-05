@@ -51,6 +51,7 @@ function hit(
     events.push({
       type: 'projectileHit',
       projectileId: projectile.id,
+      kind: projectile.kind,
       x,
       y,
       splashRadius: attack.radius,
@@ -60,7 +61,13 @@ function hit(
       return Math.hypot(pose.x - x, pose.y - y) <= attack.radius;
     });
   } else {
-    events.push({ type: 'projectileHit', projectileId: projectile.id, x, y });
+    events.push({
+      type: 'projectileHit',
+      projectileId: projectile.id,
+      kind: projectile.kind,
+      x,
+      y,
+    });
     victims = target ? [target] : [];
   }
 

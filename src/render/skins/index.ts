@@ -1,8 +1,10 @@
 import type { Skin } from '../skin';
+import { fruitSkin } from './fruit/fruit-skin';
 import { polygonSkin } from './polygon/polygon-skin';
 
 export const skins: Record<string, Skin> = {
   [polygonSkin.id]: polygonSkin,
+  [fruitSkin.id]: fruitSkin,
 };
 
 export const DEFAULT_SKIN_ID = polygonSkin.id;
