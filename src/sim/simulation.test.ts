@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { fixtures } from '../fixtures/named';
 import { scenario } from '../fixtures/scenario';
+import { towerStats } from '../content/schemas';
 import { createSimulation } from './simulation';
 import type { SimEvent } from './types';
 
@@ -220,6 +221,7 @@ describe('building towers', () => {
         id: (result as { id: number }).id,
         kind: 'basic',
         slotId: 'slot-3',
+        level: 1,
         cooldownTicks: 0,
         targetId: null,
       },
@@ -525,5 +527,210 @@ describe('build queries', () => {
     expect(sim.isSlotFree('slot-2')).toBe(true);
     expect(sim.isSlotFree('slot-3')).toBe(false);
     expect(sim.isSlotFree('slot-99')).toBe(false);
+  });
+});
+
+/** Catalog stats of a Tower level; tests read them so that tuning numbers doesn't break rules. */
+const statsOf = (kind: string, level: number) =>
+  towerStats(fixtures.emptyMap().units, kind, level)!;
+
+describe('upgrading towers', () => {
+  it('pays the next level’s cost, raises the level and reports towerUpgraded on the next advance', () => {
+    const sim = createSimulation(scenario().withTower('basic', SLOT_3).withGold(200).build());
+    const tower = sim.state.towers[0]!;
+
+    expect(sim.upgradeTower(tower.id)).toEqual({ ok: true });
+
+    expect(sim.state.gold).toBe(200 - statsOf('basic', 2).cost);
+    expect(sim.state.towers[0]!.level).toBe(2);
+    expect(ofType(sim.advance(1), 'towerUpgraded')).toEqual([
+      { type: 'towerUpgraded', id: tower.id, kind: 'basic', level: 2 },
+    ]);
+  });
+
+  it('keeps the cooldown and target', () => {
+    const sim = createSimulation(
+      scenario()
+        .atWave(0)
+        .withTower('basic', SLOT_3)
+        .withEnemies('normal', 1, { atPathT: 600 })
+        .withGold(200)
+        .build(),
+    );
+    sim.advance(1);
+    const { cooldownTicks, targetId } = sim.state.towers[0]!;
+
+    sim.upgradeTower(sim.state.towers[0]!.id);
+
+    expect(sim.state.towers[0]).toMatchObject({ cooldownTicks, targetId });
+  });
+
+  it("hits with the upgraded level's damage", () => {
+    const sim = createSimulation(
+      scenario()
+        .atWave(0)
+        .withTower('basic', SLOT_3, 2)
+        .withEnemies('normal', 1, { atPathT: 600 })
+        .build(),
+    );
+
+    const events = sim.advance(21);
+
+    expect(ofType(events, 'enemyDamaged')[0]!.amount).toBe(statsOf('basic', 2).damage);
+  });
+
+  it("reaches an enemy beyond the old range but within the upgraded level's range", () => {
+    const fixture = scenario()
+      .atWave(0)
+      .withTower('basic', SLOT_3)
+      .withEnemies('normal', 1, { atPathT: RANGE_EDGE_PATH_T - 2 })
+      .withGold(200)
+      .build();
+    expect(statsOf('basic', 2).range).toBeGreaterThan(statsOf('basic', 1).range + 2);
+    const sim = createSimulation(fixture);
+    const enemyId = sim.state.enemies[0]!.id;
+
+    expect(ofType(createSimulation(fixture).advance(1), 'towerFired')).toHaveLength(0);
+    sim.upgradeTower(sim.state.towers[0]!.id);
+
+    expect(ofType(sim.advance(1), 'towerFired')).toEqual([
+      expect.objectContaining({ targetId: enemyId }),
+    ]);
+  });
+
+  it('can climb to the top level and no further', () => {
+    const sim = createSimulation(scenario().withTower('splash', SLOT_3).withGold(1000).build());
+    const id = sim.state.towers[0]!.id;
+
+    expect(sim.upgradeTower(id)).toEqual({ ok: true });
+    expect(sim.upgradeTower(id)).toEqual({ ok: true });
+
+    expect(sim.state.towers[0]!.level).toBe(3);
+    expect(sim.state.gold).toBe(1000 - statsOf('splash', 2).cost - statsOf('splash', 3).cost);
+    expect(sim.upgradeTower(id)).toEqual({ ok: false, reason: 'maxLevel' });
+  });
+
+  it.each([
+    ['gameOver', () => scenario().withTower('basic', SLOT_3).withOutcome('lost').build(), 0],
+    ['unknownTower', () => scenario().withTower('basic', SLOT_3).build(), 999],
+    ['maxLevel', () => scenario().withTower('basic', SLOT_3, 3).withGold(1000).build(), 0],
+    ['notEnoughGold', () => scenario().withTower('basic', SLOT_3).withGold(39).build(), 0],
+  ] as const)(
+    'canUpgradeTower reports %s exactly as upgradeTower would, without changing anything',
+    (reason, fixture, idOffset) => {
+      const sim = createSimulation(fixture());
+      const id = sim.state.towers[0]!.id + idOffset;
+      const before = structuredClone(sim.state);
+
+      expect(sim.canUpgradeTower(id)).toEqual({ ok: false, reason });
+      expect(sim.upgradeTower(id)).toEqual({ ok: false, reason });
+      expect(sim.state).toEqual(before);
+      expect(sim.advance(0)).toEqual([]);
+    },
+  );
+
+  it('can spend exactly all of the gold', () => {
+    const cost = statsOf('basic', 2).cost;
+    const sim = createSimulation(scenario().withTower('basic', SLOT_3).withGold(cost).build());
+    const id = sim.state.towers[0]!.id;
+
+    expect(sim.canUpgradeTower(id)).toEqual({ ok: true });
+    expect(sim.upgradeTower(id)).toEqual({ ok: true });
+    expect(sim.state.gold).toBe(0);
+  });
+});
+
+describe('selling towers', () => {
+  const ratio = fixtures.emptyMap().units.sellRefundRatio;
+
+  it('refunds a share of the build cost for a level-1 tower and frees its Slot', () => {
+    const sim = createSimulation(scenario().withTower('basic', SLOT_3).withGold(0).build());
+    const tower = sim.state.towers[0]!;
+    const refund = Math.floor(statsOf('basic', 1).cost * ratio);
+
+    expect(sim.sellValue(tower.id)).toBe(refund);
+    expect(sim.sellTower(tower.id)).toEqual({ ok: true, refund });
+
+    expect(sim.state.gold).toBe(refund);
+    expect(sim.state.towers).toEqual([]);
+    expect(sim.isSlotFree(SLOT_3)).toBe(true);
+    expect(ofType(sim.advance(1), 'towerSold')).toEqual([
+      { type: 'towerSold', id: tower.id, kind: 'basic', level: 1, slotId: SLOT_3, refund },
+    ]);
+  });
+
+  it('refunds a share of the build cost plus every upgrade for a top-level tower', () => {
+    const sim = createSimulation(scenario().withTower('splash', SLOT_3, 3).withGold(0).build());
+    const invested = [1, 2, 3].reduce((sum, level) => sum + statsOf('splash', level).cost, 0);
+
+    expect(sim.sellTower(sim.state.towers[0]!.id)).toEqual({
+      ok: true,
+      refund: Math.floor(invested * ratio),
+    });
+  });
+
+  it('lets a new tower be built on the freed Slot', () => {
+    const sim = createSimulation(scenario().withTower('basic', SLOT_3).withGold(100).build());
+
+    sim.sellTower(sim.state.towers[0]!.id);
+
+    expect(sim.placeTower(SLOT_3, 'splash').ok).toBe(true);
+  });
+
+  it.each([
+    ['gameOver', () => scenario().withTower('basic', SLOT_3).withOutcome('won').build(), 0],
+    ['unknownTower', () => scenario().withTower('basic', SLOT_3).build(), 999],
+  ] as const)('is refused with %s, changing nothing', (reason, fixture, idOffset) => {
+    const sim = createSimulation(fixture());
+    const id = sim.state.towers[0]!.id + idOffset;
+    const before = structuredClone(sim.state);
+
+    expect(sim.sellTower(id)).toEqual({ ok: false, reason });
+    expect(sim.state).toEqual(before);
+    expect(sim.advance(0)).toEqual([]);
+  });
+
+  it('has no Sell value for an unknown tower', () => {
+    expect(createSimulation(fixtures.emptyMap()).sellValue(999)).toBeNull();
+  });
+});
+
+describe('projectiles in flight', () => {
+  /** A basic tower that has just fired at an enemy, its shot still flying. */
+  const midFlight = () => {
+    const sim = createSimulation(
+      scenario()
+        .atWave(0)
+        .withTower('basic', SLOT_3)
+        .withEnemies('normal', 1, { atPathT: 600 })
+        .withGold(200)
+        .build(),
+    );
+    sim.advance(1);
+    expect(sim.state.projectiles).toHaveLength(1);
+    return sim;
+  };
+
+  it('still hits after its tower is sold', () => {
+    const sim = midFlight();
+
+    sim.sellTower(sim.state.towers[0]!.id);
+    const events = sim.advance(20);
+
+    expect(ofType(events, 'enemyDamaged')).toEqual([
+      expect.objectContaining({ amount: statsOf('basic', 1).damage }),
+    ]);
+  });
+
+  it('keeps the damage of the level it was fired at when its tower is upgraded', () => {
+    const sim = midFlight();
+    const shotId = sim.state.projectiles[0]!.id;
+
+    sim.upgradeTower(sim.state.towers[0]!.id);
+    const events = sim.advance(20);
+    const hitByShot = ofType(events, 'projectileHit').findIndex((e) => e.projectileId === shotId);
+
+    expect(hitByShot).toBeGreaterThanOrEqual(0);
+    expect(ofType(events, 'enemyDamaged')[0]!.amount).toBe(statsOf('basic', 1).damage);
   });
 });

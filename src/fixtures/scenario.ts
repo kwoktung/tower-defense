@@ -1,5 +1,5 @@
 import { loadBundledLevel, loadBundledUnits } from '../content/bundled';
-import type { LevelDef, UnitCatalog } from '../content/schemas';
+import { towerStats, type LevelDef, type UnitCatalog } from '../content/schemas';
 import { createInitialState, createSimulation, type SimulationInput } from '../sim/simulation';
 import type { Outcome, SimState, SpawnCursor } from '../sim/types';
 
@@ -52,14 +52,18 @@ export class ScenarioBuilder {
     return this;
   }
 
-  /** Puts a tower on a Slot without paying for it. */
-  withTower(kind: string, slotId: string): this {
+  /** Puts a tower of `level` (default 1) on a Slot without paying for it. */
+  withTower(kind: string, slotId: string, level = 1): this {
     if (!this.units.towers[kind]) throw new Error(`Unknown tower kind "${kind}"`);
+    if (!towerStats(this.units, kind, level)) {
+      throw new Error(`Tower kind "${kind}" has no level ${level}`);
+    }
     if (!this.level.slots.some((s) => s.id === slotId)) throw new Error(`Unknown slot "${slotId}"`);
     this.state.towers.push({
       id: this.state.nextId++,
       kind,
       slotId,
+      level,
       cooldownTicks: 0,
       targetId: null,
     });

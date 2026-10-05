@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/html-vite';
 import { fixtures } from '../fixtures/named';
 import { loadBundledUnits } from '../content/bundled';
+import { towerStats } from '../content/schemas';
 import { baseArgs, baseArgTypes, type BaseStoryArgs } from '../storybook/args';
 import { mountFixtureStory } from '../storybook/fixture-story';
 
@@ -31,7 +32,7 @@ export const SplashExplosion: Story = {
     const fixture = fixtures.splashHittingCluster();
     const leader = fixture.initialState.enemies[0]!;
     const projectile = fixture.initialState.projectiles[0]!;
-    const splashAttack = loadBundledUnits().towers.splash!.attack;
+    const splashAttack = towerStats(loadBundledUnits(), 'splash', projectile.level)!.attack;
     if (splashAttack.mode !== 'splash') throw new Error('splash tower is not a splash attack');
     // Show the explosion where the projectile is headed, without the projectile itself.
     fixture.initialState.projectiles = [];

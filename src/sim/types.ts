@@ -15,6 +15,8 @@ export interface Tower {
   id: number;
   kind: string;
   slotId: string;
+  /** Tower level, from 1. Stats come from the Unit catalog for this kind and level. */
+  level: number;
   /** Ticks until the tower may fire again; 0 means ready. */
   cooldownTicks: number;
   /** Enemy currently aimed at, if any. */
@@ -24,8 +26,10 @@ export interface Tower {
 /** A homing shot. Flies at the target, or at its last known position once the target is gone. */
 export interface Projectile {
   id: number;
-  /** Kind of the tower that fired it; decides speed, damage and attack mode. */
+  /** Kind of the tower that fired it; with `level`, decides speed, damage and attack mode. */
   kind: string;
+  /** Level of the tower when it fired. Later upgrades or a sale don't change this shot. */
+  level: number;
   towerId: number;
   /** Null once the target has died or leaked. */
   targetId: number | null;
@@ -70,6 +74,15 @@ export interface SimState {
 export type SimEvent =
   | { type: 'waveStarted'; index: number }
   | { type: 'towerPlaced'; id: number; kind: string; slotId: string }
+  | { type: 'towerUpgraded'; id: number; kind: string; level: number }
+  | {
+      type: 'towerSold';
+      id: number;
+      kind: string;
+      level: number;
+      slotId: string;
+      refund: number;
+    }
   | { type: 'towerFired'; towerId: number; projectileId: number; targetId: number }
   | { type: 'projectileHit'; projectileId: number; x: number; y: number; splashRadius?: number }
   | { type: 'enemySpawned'; id: number; kind: string }

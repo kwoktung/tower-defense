@@ -1,3 +1,4 @@
+import { towerStats } from '../../content/schemas';
 import type { SimContext } from '../context';
 import { poseAt } from '../path';
 import { TICK_RATE } from '../time';
@@ -17,7 +18,7 @@ export function moveProjectiles(state: SimState, ctx: SimContext, events: SimEve
       projectile.targetId = null;
     }
 
-    const def = ctx.units.towers[projectile.kind]!;
+    const def = towerStats(ctx.units, projectile.kind, projectile.level)!;
     const step = def.projectileSpeed / TICK_RATE;
     const { position, destination } = projectile;
     const dx = destination.x - position.x;
@@ -42,7 +43,7 @@ function hit(
   ctx: SimContext,
   events: SimEvent[],
 ): void {
-  const { attack, damage } = ctx.units.towers[projectile.kind]!;
+  const { attack, damage } = towerStats(ctx.units, projectile.kind, projectile.level)!;
   const { x, y } = projectile.position;
 
   let victims: Enemy[];

@@ -1,4 +1,5 @@
 import type * as Phaser from 'phaser';
+import { towerStats } from '../content/schemas';
 import { GAME_HEIGHT, GAME_WIDTH } from '../game-config';
 import type { Simulation } from '../sim/simulation';
 import type { Outcome } from '../sim/types';
@@ -174,7 +175,7 @@ export function hudModelOf(sim: Simulation, selectedTower: string | null): HudMo
     towers: Object.entries(sim.units.towers).map(([kind, def]) => ({
       kind,
       name: def.name,
-      cost: def.cost,
+      cost: towerStats(sim.units, kind, 1)!.cost,
       affordable: sim.canAfford(kind),
       selected: kind === selectedTower,
     })),
