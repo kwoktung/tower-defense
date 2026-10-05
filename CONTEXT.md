@@ -17,12 +17,14 @@ Use these terms in code, tickets, commits and reviews. Avoid the listed synonyms
 - **pathT** — Distance an enemy has travelled along the Path, in world units. Enemy position and heading are derived from it.
 - **Slot** — A grid cell where a tower may be built. _Avoid:_ build spot, pad, tile (a tile is any grid cell).
 - **Tower** — A placed defensive unit, identified by **kind** (`basic`, `splash`).
+- **Tower level** — A Tower's upgrade step, starting at 1. Its stats come from the Unit catalog entry for that kind and level; how it looks is up to the Skin (ADR-0002). _Avoid:_ tier, rank.
+- **Sell value** — Gold returned when a Tower is sold: a fixed share (`sellRefundRatio`) of everything spent on it, i.e. build cost plus all upgrades. _Avoid:_ refund price, resale.
 - **Enemy** — A unit walking the Path, identified by **kind** (`normal`, `fast`).
 - **Projectile** — A homing shot fired by a Tower. If its target dies first it continues to the target's last known position.
 - **Splash** — Attack mode that damages every Enemy within a radius of the impact point.
 - **Wave** — One numbered round of enemies, started by the player. Made of ordered **spawn groups** (`kind`, `count`, `interval`).
 - **Leak** — An Enemy reaching the end of the Path; costs lives. _Avoid:_ escape.
-- **Unit catalog** — Config describing every Tower and Enemy kind's stats.
+- **Unit catalog** — Config describing every Tower and Enemy kind's stats, per Tower level for Towers. It holds no art (ADR-0002).
 - **Level definition** — Config describing the grid, Path, Slots, starting gold/lives and Waves.
 
 ## Rendering
