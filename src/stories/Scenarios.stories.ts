@@ -53,6 +53,11 @@ export const ArmoredWave: Story = {
   args: { fixture: 'armoredWave' },
   ...timeline(0, 600, 1100, 1500),
 };
+/** Slow: hit fast enemies get an icy ring and fall behind the unslowed ones. */
+export const SlowingFastEnemies: Story = {
+  args: { fixture: 'slowingFastEnemies' },
+  ...timeline(0, 60, 150, 300),
+};
 /** Gold on more towers vs on one upgrade: same pack, compare the timelines (ticket 04). */
 export const SpentOnTowers: Story = {
   args: { fixture: 'spentOnTowers' },

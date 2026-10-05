@@ -42,6 +42,8 @@ const HIT_FLASH_MS = 80;
 const BAR_WIDTH = 24;
 const BAR_HEIGHT = 4;
 const BAR_OFFSET_Y = -20;
+/** Radius of the icy ring around a slowed enemy. */
+const SLOW_RADIUS = 19;
 
 export function createEnemyView(scene: Phaser.Scene, kind: string): EntityView<Enemy> {
   if (!OUTLINES[kind]) console.error(`Polygon skin has no look for enemy kind "${kind}"`);
@@ -55,7 +57,13 @@ export function createEnemyView(scene: Phaser.Scene, kind: string): EntityView<E
   const flash = scene.add.graphics().setVisible(false);
   fillPolygon(flash, outline, colorNumber(palette.hitFlash));
   const bar = scene.add.graphics();
-  root.add([body, flash, bar]);
+  // Drawn under the body so the enemy stays readable.
+  const frost = scene.add.graphics().setVisible(false);
+  frost.fillStyle(colorNumber(palette.slowed), 0.25);
+  frost.fillCircle(0, 0, SLOW_RADIUS);
+  frost.lineStyle(2, colorNumber(palette.slowed), 0.9);
+  frost.strokeCircle(0, 0, SLOW_RADIUS);
+  root.add([frost, body, flash, bar]);
   let flashTimer: Phaser.Time.TimerEvent | null = null;
 
   let lastRatio = -1;
@@ -76,6 +84,7 @@ export function createEnemyView(scene: Phaser.Scene, kind: string): EntityView<E
       body.setRotation(pose.angle);
       flash.setRotation(pose.angle);
       drawBar(Math.max(0, enemy.hp / enemy.maxHp));
+      frost.setVisible(enemy.slow !== null);
     },
     onEvent(event) {
       if (event.type !== 'enemyDamaged') return;

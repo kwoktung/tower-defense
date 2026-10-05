@@ -32,7 +32,7 @@ export function spawnEnemies(state: SimState, ctx: SimContext, events: SimEvent[
   const group = groups[cursor.groupIndex]!;
   const def = ctx.units.enemies[group.kind]!;
   const id = state.nextId++;
-  state.enemies.push({ id, kind: group.kind, hp: def.hp, maxHp: def.hp, pathT: 0 });
+  state.enemies.push({ id, kind: group.kind, hp: def.hp, maxHp: def.hp, pathT: 0, slow: null });
   events.push({ type: 'enemySpawned', id, kind: group.kind });
 
   // The gap before the next spawn is this group's interval, even when the next spawn opens a new group.

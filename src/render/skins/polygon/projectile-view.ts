@@ -11,9 +11,13 @@ const OCTAGON = Array.from({ length: 8 }, (_, i): [number, number] => {
   return [Math.cos(a) * RADIUS, Math.sin(a) * RADIUS];
 });
 
-export function createProjectileView(scene: Phaser.Scene): EntityView<Projectile> {
+/** Shots of towers that Slow look icy; everything else is the default yellow. */
+const COLORS: Record<string, string> = { slow: palette.projectileSlow };
+
+/** `kind` is the kind of the tower that fired. */
+export function createProjectileView(scene: Phaser.Scene, kind: string): EntityView<Projectile> {
   const dot = scene.add.graphics().setDepth(15);
-  fillPolygon(dot, OCTAGON, colorNumber(palette.projectile));
+  fillPolygon(dot, OCTAGON, colorNumber(COLORS[kind] ?? palette.projectile));
   return {
     sync: ({ position }) => void dot.setPosition(position.x, position.y),
     destroy: () => dot.destroy(),
