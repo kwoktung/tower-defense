@@ -1,7 +1,7 @@
 import { towerStats } from '../../content/schemas';
 import type { SimContext } from '../context';
 import { poseAt } from '../path';
-import { TICK_RATE } from '../time';
+import { secondsToTicks, TICK_RATE } from '../time';
 import type { Enemy, Projectile, SimEvent, SimState } from '../types';
 
 /**
@@ -43,7 +43,7 @@ function hit(
   ctx: SimContext,
   events: SimEvent[],
 ): void {
-  const { attack, damage } = towerStats(ctx.units, projectile.kind, projectile.level)!;
+  const { attack, damage, slow } = towerStats(ctx.units, projectile.kind, projectile.level)!;
   const { x, y } = projectile.position;
 
   let victims: Enemy[];
@@ -64,7 +64,16 @@ function hit(
     victims = target ? [target] : [];
   }
 
-  for (const enemy of victims) damageEnemy(enemy, damage, state, ctx, events);
+  for (const enemy of victims) {
+    const survived = damageEnemy(enemy, damage, state, ctx, events);
+    if (survived && slow) applySlow(enemy, slow.factor, secondsToTicks(slow.durationSec));
+  }
+}
+
+/** Slows don't stack: one at least as strong replaces the current Slow and restarts it. */
+function applySlow(enemy: Enemy, factor: number, ticks: number): void {
+  if (enemy.slow && factor < enemy.slow.factor) return;
+  enemy.slow = { factor, ticksLeft: ticks };
 }
 
 /** Share of a hit that always gets through, however high the Armor. */
@@ -75,18 +84,19 @@ function damageAfterArmor(damage: number, armor: number): number {
   return Math.max(damage - armor, damage * MIN_DAMAGE_SHARE);
 }
 
+/** Deals a hit after Armor; returns whether the enemy survived it. */
 function damageEnemy(
   enemy: Enemy,
   amount: number,
   state: SimState,
   ctx: SimContext,
   events: SimEvent[],
-): void {
+): boolean {
   const { reward, armor } = ctx.units.enemies[enemy.kind]!;
   const dealt = damageAfterArmor(amount, armor);
   enemy.hp -= dealt;
   events.push({ type: 'enemyDamaged', id: enemy.id, amount: dealt });
-  if (enemy.hp > 0) return;
+  if (enemy.hp > 0) return true;
 
   const pose = poseAt(ctx.path, enemy.pathT);
   state.gold += reward;
@@ -99,4 +109,5 @@ function damageEnemy(
     x: pose.x,
     y: pose.y,
   });
+  return false;
 }

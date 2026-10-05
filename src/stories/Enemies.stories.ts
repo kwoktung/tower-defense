@@ -48,6 +48,23 @@ export const FastDamaged: Story = { args: { kind: 'fast', pathT: 860, hpRatio: 0
 /** The white hit flash, frozen. */
 export const NormalHit: Story = { args: { hit: true, hpRatio: 0.6 } };
 export const FastHit: Story = { args: { kind: 'fast', pathT: 860, hit: true, hpRatio: 0.6 } };
+/** Under a Slow: the icy ring. */
+export const NormalSlowed: Story = {
+  render: (args) => {
+    const fixture = scenario()
+      .atWave(0)
+      .withEnemies(args.kind, 1, {
+        atPathT: args.pathT,
+        hpRatio: args.hpRatio,
+        slow: { factor: 0.4, durationSec: 2 },
+      })
+      .build();
+    return mountFixtureStory(args, fixture, {
+      camera: { focus: { enemyId: fixture.initialState.enemies[0]!.id } },
+    });
+  },
+};
+export const ArmoredSlowed: Story = { ...NormalSlowed, args: { kind: 'armored' } };
 /** Darker, bigger octagon with a grey armour outline. */
 export const Armored: Story = { args: { kind: 'armored' } };
 export const ArmoredHit: Story = { args: { kind: 'armored', hit: true, hpRatio: 0.6 } };

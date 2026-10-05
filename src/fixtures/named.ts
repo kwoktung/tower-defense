@@ -1,5 +1,12 @@
 import { scenario, type Fixture } from './scenario';
 
+/** Slots for `allTowerLevels`: one row per tower kind, one Slot per level. */
+const ALL_LEVELS_ROWS = [
+  ['slot-1', 'slot-2', 'slot-3'],
+  ['slot-8', 'slot-6', 'slot-7'],
+  ['slot-9', 'slot-10', 'slot-11'],
+];
+
 /**
  * Named Fixtures shared by tests and Scenario stories. Each is a function so callers
  * always get a fresh copy.
@@ -42,16 +49,25 @@ export const fixtures = {
   oneOfEachTower: (): Fixture =>
     scenario().withTower('basic', 'slot-2').withTower('splash', 'slot-3').build(),
 
-  /** Every tower kind at every level: basic levels 1–3 along the top row, splash along the bottom. */
-  allTowerLevels: (): Fixture =>
-    scenario()
-      .withTower('basic', 'slot-1', 1)
-      .withTower('basic', 'slot-2', 2)
-      .withTower('basic', 'slot-3', 3)
-      .withTower('splash', 'slot-9', 1)
-      .withTower('splash', 'slot-10', 2)
-      .withTower('splash', 'slot-11', 3)
-      .build(),
+  /**
+   * Every tower kind at every level, read from the Unit catalog so new kinds and levels appear
+   * by themselves: one row of Slots per kind (top, middle, bottom), levels left to right.
+   */
+  allTowerLevels: (): Fixture => {
+    const builder = scenario();
+    const kinds = Object.entries(builder.units.towers);
+    if (kinds.length > ALL_LEVELS_ROWS.length) {
+      throw new Error('allTowerLevels: add a row of Slots for the new tower kind');
+    }
+    kinds.forEach(([kind, def], row) =>
+      def.levels.forEach((_, i) => {
+        const slot = ALL_LEVELS_ROWS[row]![i];
+        if (!slot) throw new Error(`allTowerLevels: add a Slot for ${kind} level ${i + 1}`);
+        builder.withTower(kind, slot, i + 1);
+      }),
+    );
+    return builder.build();
+  },
 
   /**
    * A line of armored enemies walking past a level-1 basic tower (slot-3) and then a top-level
@@ -64,6 +80,18 @@ export const fixtures = {
       .withTower('basic', 'slot-7', 3)
       .withEnemies('armored', 5, { atPathT: 300, spacing: 56 })
       .build(),
+
+  /** Fast enemies streaming past a level-2 slow tower and a basic tower: the slowed ones show their icy ring. */
+  slowingFastEnemies: (): Fixture =>
+    scenario()
+      .atWave(1)
+      .withTower('slow', 'slot-3', 2)
+      .withTower('basic', 'slot-7')
+      .withEnemies('fast', 6, { atPathT: 420, spacing: 40 })
+      .build(),
+
+  /** A level-2 slow tower with gold for its upgrade, which brings a splash (open its panel in stories). */
+  slowTowerSelected: (): Fixture => scenario().withGold(200).withTower('slow', 'slot-6', 2).build(),
 
   /** About 150 gold spent on three level-1 basic towers, facing a dense pack. Compare with spentOnUpgrade. */
   spentOnTowers: (): Fixture =>

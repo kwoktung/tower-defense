@@ -2,11 +2,12 @@ import type { SimContext } from '../context';
 import { TICK_RATE } from '../time';
 import type { SimEvent, SimState } from '../types';
 
-/** Advances every enemy along the Path; enemies reaching its end Leak and cost lives. */
+/** Advances every enemy along the Path, slowed if under a Slow; enemies reaching its end Leak and cost lives. */
 export function moveEnemies(state: SimState, ctx: SimContext, events: SimEvent[]): void {
   state.enemies = state.enemies.filter((enemy) => {
     const def = ctx.units.enemies[enemy.kind]!;
-    enemy.pathT += def.speed / TICK_RATE;
+    enemy.pathT += (def.speed * (1 - (enemy.slow?.factor ?? 0))) / TICK_RATE;
+    if (enemy.slow && --enemy.slow.ticksLeft <= 0) enemy.slow = null;
     if (enemy.pathT < ctx.path.length) return true;
     state.lives = Math.max(0, state.lives - def.leakDamage);
     events.push({ type: 'enemyLeaked', id: enemy.id, livesLost: def.leakDamage });

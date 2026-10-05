@@ -1,6 +1,7 @@
 import { loadBundledLevel, loadBundledUnits } from '../content/bundled';
 import { towerStats, type LevelDef, type UnitCatalog } from '../content/schemas';
 import { createInitialState, createSimulation, type SimulationInput } from '../sim/simulation';
+import { secondsToTicks } from '../sim/time';
 import type { Outcome, SimState, SpawnCursor } from '../sim/types';
 
 /** One moment of play, ready for `createSimulation(fixture)` in tests or to render in a story. */
@@ -13,6 +14,8 @@ export interface EnemyPlacement {
   spacing?: number;
   /** Current hp as a fraction of max hp. Default 1. */
   hpRatio?: number;
+  /** A Slow already on every placed enemy. */
+  slow?: { factor: number; durationSec: number };
 }
 
 /**
@@ -22,7 +25,7 @@ export interface EnemyPlacement {
  */
 export class ScenarioBuilder {
   private level: LevelDef;
-  private readonly units: UnitCatalog;
+  readonly units: UnitCatalog;
   private state: SimState;
 
   constructor(private readonly seed: number) {
@@ -79,7 +82,7 @@ export class ScenarioBuilder {
   withEnemies(kind: string, count: number, placement: EnemyPlacement): this {
     const def = this.units.enemies[kind];
     if (!def) throw new Error(`Unknown enemy kind "${kind}"`);
-    const { atPathT, spacing = 32, hpRatio = 1 } = placement;
+    const { atPathT, spacing = 32, hpRatio = 1, slow } = placement;
     for (let i = 0; i < count; i++) {
       this.state.enemies.push({
         id: this.state.nextId++,
@@ -87,6 +90,7 @@ export class ScenarioBuilder {
         hp: def.hp * hpRatio,
         maxHp: def.hp,
         pathT: Math.max(0, atPathT - i * spacing),
+        slow: slow ? { factor: slow.factor, ticksLeft: secondsToTicks(slow.durationSec) } : null,
       });
     }
     return this;

@@ -20,6 +20,12 @@ const SHAPES: Record<string, Points> = {
     const a = (i / 6) * Math.PI * 2 + Math.PI / 6;
     return [Math.cos(a) * 21, Math.sin(a) * 21];
   }),
+  slow: [
+    [0, -22],
+    [20, 0],
+    [0, 22],
+    [-20, 0],
+  ],
 };
 
 /** Unknown kinds still render (reporting the gap), so new content shows up before its look exists. */

@@ -39,4 +39,6 @@ export const NotEnoughGold: Story = { args: { fixture: 'towerSelectedLowGold' } 
 /** Top level: "已满级", no next-level values; the panel flips left near the right edge. */
 export const MaxLevel: Story = { args: { fixture: 'towerSelectedMaxLevel' } };
 /** Sell pressed once: the button asks for confirmation. */
+/** A slow tower: the Slow line, and the Splash the next level gains ("—" now). */
+export const SlowTower: Story = { args: { fixture: 'slowTowerSelected' } };
 export const ConfirmingSell: Story = { args: { fixture: 'towerSelected', confirmingSell: true } };

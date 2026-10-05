@@ -6,6 +6,7 @@ export const palette = {
   slotHover: '#6fae8a',
   towerBasic: '#3b82f6',
   towerSplash: '#06b6d4',
+  towerSlow: '#8b5cf6',
   towerUnknown: '#1e40af',
   /** Outline of level-2 towers. */
   towerTrim: '#e2e8f0',
@@ -23,6 +24,9 @@ export const palette = {
   hpBar: '#22c55e',
   hitFlash: '#ffffff',
   projectile: '#facc15',
+  projectileSlow: '#7dd3fc',
+  /** Ring around a slowed Enemy. */
+  slowed: '#7dd3fc',
   splash: '#facc15',
   hpBarEmpty: '#374151',
   text: '#f8fafc',
@@ -43,6 +47,7 @@ export const uiFont = 'system-ui, sans-serif';
 const TOWER_COLORS: Record<string, string> = {
   basic: palette.towerBasic,
   splash: palette.towerSplash,
+  slow: palette.towerSlow,
 };
 
 /** The one place a tower kind gets its colour; unknown kinds share the fallback. */

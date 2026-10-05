@@ -9,6 +9,14 @@ export interface Enemy {
   maxHp: number;
   /** Distance travelled along the Path, in world units. Position and heading derive from it. */
   pathT: number;
+  /** The Slow on this enemy, if any. */
+  slow: SlowState | null;
+}
+
+/** An Enemy moves at (1 − factor) of its speed for `ticksLeft` more ticks. */
+export interface SlowState {
+  factor: number;
+  ticksLeft: number;
 }
 
 export interface Tower {

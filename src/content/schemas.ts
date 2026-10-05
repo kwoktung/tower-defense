@@ -90,6 +90,14 @@ const TowerLevelSchema = z.object({
     z.object({ mode: z.literal('single') }),
     z.object({ mode: z.literal('splash'), radius: z.number().positive() }),
   ]),
+  /** Slow put on every Enemy the hit reaches, whatever the attack mode. */
+  slow: z
+    .object({
+      /** Share of speed taken away, e.g. 0.4 moves at 60%. */
+      factor: z.number().gt(0).lt(1),
+      durationSec: z.number().positive(),
+    })
+    .optional(),
 });
 
 export const UnitCatalogSchema = z.object({

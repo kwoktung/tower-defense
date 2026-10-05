@@ -1,6 +1,7 @@
 import type * as Phaser from 'phaser';
 import { towerStats, type LevelDef, type UnitCatalog } from '../content/schemas';
 import { buildPath, poseAt, slotCenter } from '../sim/path';
+import { TICK_RATE } from '../sim/time';
 import type { SimState } from '../sim/types';
 
 /** Fixed, skin-independent look so debug marks never read as game content. */
@@ -92,7 +93,8 @@ export function createDebugOverlay(
         seen.add(enemy.id);
         const armor = units.enemies[enemy.kind]?.armor ?? 0;
         const hp = `#${enemy.id} ${Math.ceil(enemy.hp)}/${enemy.maxHp}`;
-        label(enemy.id, pose.x, pose.y + 16, armor > 0 ? `${hp} armor ${armor}` : hp);
+        const slow = enemy.slow ? ` slow ${(enemy.slow.ticksLeft / TICK_RATE).toFixed(1)}s` : '';
+        label(enemy.id, pose.x, pose.y + 16, `${hp}${armor > 0 ? ` armor ${armor}` : ''}${slow}`);
       }
       for (const projectile of state.projectiles) {
         seen.add(projectile.id);

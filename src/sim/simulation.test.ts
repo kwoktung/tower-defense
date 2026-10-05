@@ -124,7 +124,9 @@ describe('spawning', () => {
     sim.startNextWave();
     sim.advance(1);
 
-    expect(sim.state.enemies).toEqual([{ id: 1, kind: 'normal', hp: 40, maxHp: 40, pathT: 0 }]);
+    expect(sim.state.enemies).toEqual([
+      { id: 1, kind: 'normal', hp: 40, maxHp: 40, pathT: 0, slow: null },
+    ]);
   });
 });
 
@@ -815,5 +817,143 @@ describe('Armor', () => {
     expect(sim.state.enemies.find((e) => e.id === armored!.id)!.hp).toBe(
       armored!.maxHp - Math.max(damage - armorOf('armored'), damage * 0.2),
     );
+  });
+});
+
+describe('Slow', () => {
+  const units = fixtures.emptyMap().units;
+  const speedOf = (kind: string) => units.enemies[kind]!.speed / TICKS_PER_SECOND;
+  const slowOf = (level: number) => statsOf('slow', level).slow!;
+
+  /** A slow tower of `level` on slot-3 and one enemy of `kind` in its range; advanced until the first hit. */
+  const hitOnce = (kind: string, level = 1) => {
+    const sim = createSimulation(
+      scenario()
+        .atWave(0)
+        .withTower('slow', SLOT_3, level)
+        .withEnemies(kind, 1, { atPathT: 600 })
+        .build(),
+    );
+    for (let i = 0; i < 60 && !ofType(sim.advance(1), 'projectileHit').length; i++);
+    return sim;
+  };
+
+  it('slows the enemy hit for its duration, then lets it walk at full speed again', () => {
+    const sim = hitOnce('normal');
+    const { factor, durationSec } = slowOf(1);
+    const enemy = () => sim.state.enemies[0]!;
+    const duration = durationSec * TICKS_PER_SECOND;
+    // The hit lands before enemies move, so the hit tick already took one slowed step.
+    expect(enemy().slow).toEqual({ factor, ticksLeft: duration - 1 });
+
+    // Remove the tower so no further hit refreshes the Slow.
+    sim.sellTower(sim.state.towers[0]!.id);
+    const start = enemy().pathT;
+    sim.advance(1);
+    expect(enemy().pathT - start).toBeCloseTo(speedOf('normal') * (1 - factor));
+
+    sim.advance(duration - 2);
+    expect(enemy().slow).toBeNull();
+    const after = enemy().pathT;
+    sim.advance(1);
+    expect(enemy().pathT - after).toBeCloseTo(speedOf('normal'));
+  });
+
+  it('is replaced and restarted by a stronger Slow, and by one just as strong', () => {
+    for (const factor of [slowOf(1).factor, 0.9]) {
+      const sim = createSimulation(
+        scenario()
+          .atWave(0)
+          .withTower('slow', SLOT_3)
+          .withEnemies('normal', 1, { atPathT: 600, slow: { factor, durationSec: 0.5 } })
+          .build(),
+      );
+      for (let i = 0; i < 60 && !ofType(sim.advance(1), 'projectileHit').length; i++);
+
+      const expected = factor > slowOf(1).factor ? factor : slowOf(1).factor;
+      expect(sim.state.enemies[0]!.slow!.factor).toBe(expected);
+      if (factor === slowOf(1).factor) {
+        expect(sim.state.enemies[0]!.slow!.ticksLeft).toBe(
+          slowOf(1).durationSec * TICKS_PER_SECOND - 1,
+        );
+      }
+    }
+  });
+
+  it('is ignored when weaker than the current Slow', () => {
+    const current = { factor: 0.9, durationSec: 5 };
+    const sim = createSimulation(
+      scenario()
+        .atWave(0)
+        .withTower('slow', SLOT_3)
+        .withEnemies('normal', 1, { atPathT: 600, slow: current })
+        .build(),
+    );
+    let ticks = 0;
+    for (; ticks < 60 && !ofType(sim.advance(1), 'projectileHit').length; ticks++);
+
+    expect(sim.state.enemies[0]!.slow).toEqual({
+      factor: 0.9,
+      ticksLeft: current.durationSec * TICKS_PER_SECOND - ticks - 1,
+    });
+  });
+
+  it('slows armored enemies too, whatever their Armor takes off the damage', () => {
+    expect(hitOnce('armored').state.enemies[0]!.slow!.factor).toBe(slowOf(1).factor);
+  });
+
+  it('puts no Slow on an enemy the hit kills', () => {
+    const sim = createSimulation(
+      scenario()
+        .atWave(0)
+        .withTower('slow', SLOT_3)
+        .withEnemies('normal', 1, { atPathT: 600, hpRatio: 0.01 })
+        .build(),
+    );
+
+    const events = sim.advance(60);
+
+    expect(ofType(events, 'enemyKilled')).toHaveLength(1);
+    expect(sim.state.enemies).toEqual([]);
+  });
+
+  it('reaches every enemy in a splash hit at the top level', () => {
+    expect(statsOf('slow', 3).attack.mode).toBe('splash');
+    const sim = createSimulation(
+      scenario()
+        .atWave(0)
+        .withTower('slow', SLOT_3, 3)
+        .withEnemies('normal', 3, { atPathT: 600, spacing: 12 })
+        .build(),
+    );
+    for (let i = 0; i < 60 && !ofType(sim.advance(1), 'projectileHit').length; i++);
+
+    expect(sim.state.enemies.map((e) => e.slow?.factor)).toEqual([
+      slowOf(3).factor,
+      slowOf(3).factor,
+      slowOf(3).factor,
+    ]);
+  });
+
+  it('uses the level the shot was fired at, even if the tower is upgraded or sold mid-flight', () => {
+    for (const change of ['upgrade', 'sell'] as const) {
+      const sim = createSimulation(
+        scenario()
+          .atWave(0)
+          .withGold(500)
+          .withTower('slow', SLOT_3)
+          .withEnemies('normal', 1, { atPathT: 600 })
+          .build(),
+      );
+      sim.advance(1);
+      expect(sim.state.projectiles).toHaveLength(1);
+      const towerId = sim.state.towers[0]!.id;
+      if (change === 'upgrade') sim.upgradeTower(towerId);
+      else sim.sellTower(towerId);
+
+      for (let i = 0; i < 60 && !ofType(sim.advance(1), 'projectileHit').length; i++);
+
+      expect(sim.state.enemies[0]!.slow!.factor).toBe(slowOf(1).factor);
+    }
   });
 });

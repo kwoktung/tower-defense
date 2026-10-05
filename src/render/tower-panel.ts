@@ -37,15 +37,20 @@ export interface TowerPanelActions {
 const fireRate = (def: TowerLevelDef) => `${(1 / def.cooldownSec).toFixed(1)}/秒`;
 
 function statLines(current: TowerLevelDef, next: TowerLevelDef | undefined): TowerStatLine[] {
+  // A stat shows when this level or the next has it, e.g. a Splash the next level gains.
   const line = (label: string, of: (def: TowerLevelDef) => string | null) => {
     const now = of(current);
-    return now === null ? [] : [{ label, current: now, next: next ? of(next) : null }];
+    const then = next ? of(next) : null;
+    return now === null && then === null ? [] : [{ label, current: now ?? '—', next: then }];
   };
   return [
     ...line('伤害', (d) => String(d.damage)),
     ...line('射速', fireRate),
     ...line('射程', (d) => String(d.range)),
     ...line('溅射', (d) => (d.attack.mode === 'splash' ? String(d.attack.radius) : null)),
+    ...line('减速', (d) =>
+      d.slow ? `${Math.round(d.slow.factor * 100)}% · ${d.slow.durationSec}秒` : null,
+    ),
   ];
 }
 

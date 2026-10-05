@@ -58,6 +58,38 @@
           "attack": { "mode": "splash", "radius": 50 }
         }
       ]
+    },
+    "slow": {
+      "name": "减速塔",
+      "levels": [
+        {
+          "cost": 60,
+          "range": 128,
+          "damage": 3,
+          "cooldownSec": 1,
+          "projectileSpeed": 400,
+          "attack": { "mode": "single" },
+          "slow": { "factor": 0.4, "durationSec": 2 }
+        },
+        {
+          "cost": 45,
+          "range": 136,
+          "damage": 4,
+          "cooldownSec": 1,
+          "projectileSpeed": 400,
+          "attack": { "mode": "single" },
+          "slow": { "factor": 0.5, "durationSec": 2.5 }
+        },
+        {
+          "cost": 80,
+          "range": 144,
+          "damage": 5,
+          "cooldownSec": 1,
+          "projectileSpeed": 400,
+          "attack": { "mode": "splash", "radius": 40 },
+          "slow": { "factor": 0.55, "durationSec": 2.5 }
+        }
+      ]
     }
   },
   "enemies": {
