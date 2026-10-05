@@ -1,6 +1,6 @@
 import type * as Phaser from 'phaser';
 import type { LevelDef } from '../content/schemas';
-import { buildPath } from '../sim/path';
+import { buildPath, poseAt, type PathGeometry, type Point } from '../sim/path';
 import type { SimEvent, SimState } from '../sim/types';
 import type { EntityView, Skin, SyncContext } from './skin';
 
@@ -32,7 +32,8 @@ class ViewSet<E extends { id: number; kind: string }> {
 
 /** Turns snapshots into views and forwards SimEvents to the views they concern. */
 export class WorldRenderer {
-  private readonly ctx: SyncContext;
+  private readonly level: LevelDef;
+  private readonly path: PathGeometry;
   private readonly towers;
   private readonly enemies;
   private readonly projectiles;
@@ -42,16 +43,31 @@ export class WorldRenderer {
     private readonly skin: Skin,
     level: LevelDef,
   ) {
-    this.ctx = { level, path: buildPath(level) };
+    this.level = level;
+    this.path = buildPath(level);
     this.towers = new ViewSet((kind) => skin.createTowerView(scene, kind));
     this.enemies = new ViewSet((kind) => skin.createEnemyView(scene, kind));
     this.projectiles = new ViewSet((kind) => skin.createProjectileView(scene, kind));
   }
 
   render(state: Readonly<SimState>, events: readonly SimEvent[] = []): void {
-    this.towers.sync(state.towers, this.ctx);
-    this.enemies.sync(state.enemies, this.ctx);
-    this.projectiles.sync(state.projectiles, this.ctx);
+    const { level, path } = this;
+    // Positions are looked up lazily, once per enemy per frame.
+    const positions = new Map<number, Point>();
+    const enemyPosition = (id: number) => {
+      let p = positions.get(id);
+      if (!p) {
+        const enemy = state.enemies.find((e) => e.id === id);
+        if (!enemy) return undefined;
+        p = poseAt(path, enemy.pathT);
+        positions.set(id, p);
+      }
+      return p;
+    };
+    const ctx: SyncContext = { level, path, enemyPosition };
+    this.towers.sync(state.towers, ctx);
+    this.enemies.sync(state.enemies, ctx);
+    this.projectiles.sync(state.projectiles, ctx);
     for (const event of events) {
       switch (event.type) {
         case 'towerFired':

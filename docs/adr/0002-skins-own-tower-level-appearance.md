@@ -19,6 +19,7 @@ Three things could break that:
 - **A tower's view handles its own level.** `createTowerView(scene, kind)` stays as it is. `EntityView<Tower>.sync(tower)` sees `tower.level` and updates the visual when it changes: the Polygon skin redraws, while a sprite skin might swap a texture or play a transformation. The WorldRenderer never recreates a view because of a level change.
 - **One-off visuals follow the existing Effect rules.** `towerUpgraded` concerns a living tower, so it goes to that tower's view through `onEvent`. `towerSold` happens after the tower is gone, so it goes to `Skin.playEffect`.
 - **A Skin must cover every (kind, level) in the Unit catalog.** If it lacks one, it still renders a fallback, so the game keeps running, but it reports `console.error`. The `allTowerLevels` Scenario renders every combination, so the story smoke test (no `console.error`) fails before a gap ships.
+- Views may read other entities of the same snapshot through the sync context (today: an enemy's position, so a tower can face its target). It is read-only and per frame; views still never change the Simulation. Added for the fruit skin, 2026-10-05.
 - The selection ring, range circles and the tower panel are HUD/UI. They use Theme tokens only and are not part of any EntityView.
 
 ## Consequences

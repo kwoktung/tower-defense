@@ -54,6 +54,10 @@ export const AllTowerLevels: Story = { args: { fixture: 'allTowerLevels' } };
  */
 export const AllTowerLevelsFruit: Story = { args: { fixture: 'allTowerLevels', skin: 'fruit' } };
 export const OneOfEachEnemyFruit: Story = { args: { fixture: 'oneOfEachEnemy', skin: 'fruit' } };
+/** Fruit towers turn to their targets: the top one faces right, the middle one left. */
+export const TowersFacingTargetsFruit: Story = {
+  args: { fixture: 'towersFacingTargets', skin: 'fruit' },
+};
 export const ArmoredWaveFruit: Story = {
   args: { fixture: 'armoredWave', skin: 'fruit' },
   ...timeline(0, 1100),

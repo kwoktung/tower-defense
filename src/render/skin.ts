@@ -1,6 +1,6 @@
 import type * as Phaser from 'phaser';
 import type { LevelDef } from '../content/schemas';
-import type { PathGeometry } from '../sim/path';
+import type { PathGeometry, Point } from '../sim/path';
 import type { Enemy, Projectile, SimEvent, Tower } from '../sim/types';
 
 /** Named colours (`#rrggbb`) and fonts a Skin provides. The HUD reads only these. */
@@ -45,6 +45,11 @@ export interface MapView {
 export interface SyncContext {
   level: LevelDef;
   path: PathGeometry;
+  /**
+   * Where an enemy of the current snapshot stands, e.g. so a tower can face its target;
+   * undefined for an id not on the field.
+   */
+  enemyPosition(id: number): Point | undefined;
 }
 
 /** The view of one entity. Synced from the snapshot every frame; never changes the Simulation. */

@@ -130,6 +130,20 @@ export const fixtures = {
   waveCountdown: (): Fixture =>
     scenario().atWave(1).withTower('basic', 'slot-3', 2).withAutoStartIn(150).build(),
 
+  /**
+   * Two basic towers aiming opposite ways: slot-3's target is on the top run to its right,
+   * slot-7's on the middle run to its left. Advanced one tick so both have acquired them.
+   */
+  towersFacingTargets: (): Fixture =>
+    scenario()
+      .atWave(0)
+      .withTower('basic', 'slot-3')
+      .withTower('basic', 'slot-7')
+      .withEnemies('normal', 1, { atPathT: 682 })
+      .withEnemies('normal', 1, { atPathT: 1296 })
+      .advance(1)
+      .build(),
+
   /** About 150 gold spent on three level-1 basic towers, facing a dense pack. Compare with spentOnUpgrade. */
   spentOnTowers: (): Fixture =>
     scenario()

@@ -13,15 +13,25 @@ import { palette } from './palette';
 const LEVEL_SCALE = [1, 1.06, 1.12];
 /** Fruit stand a little low in their soil bed, feet near its lower edge. */
 const FOOT_OFFSET = 14;
+/**
+ * A target within this horizontal distance (world units) of the tower, i.e. nearly straight
+ * above or below it, keeps the current facing, so the tower doesn't flicker as a bug passes.
+ */
+const FACING_DEAD_ZONE = 12;
 
 const frameOf = (kind: string, level: number) => `tower-${kind}-${level}`;
 
-/** One atlas frame per (kind, level); `sync` swaps it when the level changes (ADR-0002). */
+/**
+ * One atlas frame per (kind, level); `sync` swaps it when the level changes (ADR-0002). The art
+ * faces right; the tower turns (flips) to face its current target and keeps its last facing
+ * without one.
+ */
 export function createFruitTowerView(scene: Phaser.Scene, kind: string): EntityView<Tower> {
   const body = scene.add.image(0, 0, ATLAS).setOrigin(0.5, 1).setDepth(5);
   const fallback = scene.add.graphics().setDepth(5).setVisible(false);
   let drawnLevel = 0;
   let baseScale = ART_SCALE;
+  let facingLeft = false;
 
   const showLevel = (level: number) => {
     const frame = frameOf(kind, level);
@@ -41,11 +51,15 @@ export function createFruitTowerView(scene: Phaser.Scene, kind: string): EntityV
   };
 
   return {
-    sync(tower, { level }) {
+    sync(tower, { level, enemyPosition }) {
       const c = slotCenter(level, tower.slotId);
       if (c) {
         body.setPosition(c.x, c.y + FOOT_OFFSET);
         fallback.setPosition(c.x, c.y + FOOT_OFFSET);
+        const target = tower.targetId === null ? undefined : enemyPosition(tower.targetId);
+        if (target && target.x < c.x - FACING_DEAD_ZONE) facingLeft = true;
+        else if (target && target.x > c.x + FACING_DEAD_ZONE) facingLeft = false;
+        body.setFlipX(facingLeft);
       }
       if (tower.level === drawnLevel) return;
       drawnLevel = tower.level;
