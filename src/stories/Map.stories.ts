@@ -1,36 +1,27 @@
 import type { Meta, StoryObj } from '@storybook/html-vite';
-import { loadBundledLevel, loadBundledUnits } from '../content/bundled';
-import { createDebugOverlay } from '../render/debug-overlay';
+import { fixtures } from '../fixtures/named';
 import { baseArgs, baseArgTypes, type BaseStoryArgs } from '../storybook/args';
-import { mountPhaserStory } from '../storybook/mount-phaser-story';
+import { mountFixtureStory } from '../storybook/fixture-story';
 
 interface MapArgs extends BaseStoryArgs {
-  level: string;
   hoverSlot: string | null;
 }
 
 const meta: Meta<MapArgs> = {
   title: 'Map',
-  args: { ...baseArgs, level: 'level-1', hoverSlot: null },
+  args: { ...baseArgs, hoverSlot: null },
   argTypes: {
     ...baseArgTypes,
-    level: { control: false },
     hoverSlot: {
       control: 'select',
-      options: [null, ...loadBundledLevel('level-1').slots.map((s) => s.id)],
+      options: [null, ...fixtures.emptyMap().level.slots.map((s) => s.id)],
     },
   },
+  // No tower selected, so hovering a Slot only highlights it (no range preview).
   render: (args) =>
-    mountPhaserStory({
-      skin: args.skin,
-      debug: args.debug,
-      build: ({ scene, skin, debug }) => {
-        const level = loadBundledLevel(args.level);
-        skin
-          .createMap(scene, level)
-          .setHover(args.hoverSlot ? { slotId: args.hoverSlot, rangePreview: null } : null);
-        createDebugOverlay(scene, level, loadBundledUnits(), debug);
-      },
+    mountFixtureStory(args, fixtures.emptyMap(), {
+      selectedTower: null,
+      ...(args.hoverSlot ? { hoverSlot: args.hoverSlot } : {}),
     }),
 };
 export default meta;

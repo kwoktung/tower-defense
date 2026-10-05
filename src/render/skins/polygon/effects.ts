@@ -1,7 +1,7 @@
 import type * as Phaser from 'phaser';
 import type { SimEvent } from '../../../sim/types';
 import { colorNumber } from '../../skin';
-import { palette } from './palette';
+import { enemyColor, palette } from './palette';
 
 const KILL_MS = 250;
 const SPLASH_MS = 200;
@@ -50,7 +50,6 @@ export function playEffect(scene: Phaser.Scene, event: SimEvent): void {
   if (event.type === 'projectileHit' && event.splashRadius) {
     splash(scene, event.x, event.y, event.splashRadius);
   } else if (event.type === 'enemyKilled') {
-    const color = event.kind === 'fast' ? palette.enemyFast : palette.enemyNormal;
-    ring(scene, event.x, event.y, color, 6, 22);
+    ring(scene, event.x, event.y, enemyColor(event.kind), 6, 22);
   }
 }

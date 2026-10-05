@@ -26,3 +26,13 @@ export const palette = {
   selection: '#fbbf24',
   overlay: '#000000',
 } as const;
+
+const ENEMY_COLORS: Record<string, string> = {
+  normal: palette.enemyNormal,
+  fast: palette.enemyFast,
+};
+
+/** The one place an enemy kind gets its colour; unknown kinds share the fallback. */
+export function enemyColor(kind: string): string {
+  return ENEMY_COLORS[kind] ?? palette.enemyUnknown;
+}
