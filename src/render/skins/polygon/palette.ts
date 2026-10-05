@@ -1,4 +1,4 @@
-/** Every colour the Polygon skin uses. Enemies are reds; towers (later) are cool tones. */
+/** Every colour the Polygon skin uses. Enemies are reds; towers are cool tones. */
 export const palette = {
   background: '#1e2430',
   path: '#c9b28a',

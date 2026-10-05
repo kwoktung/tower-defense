@@ -1,4 +1,7 @@
 import type { LevelDef, UnitCatalog } from '../content/schemas';
+import type { GameResult, LevelProgress } from './level-progress';
+
+export type { GameResult, LevelProgress } from './level-progress';
 
 /** Source of level definitions and the Unit catalog. Local today; may be backed by a server later. */
 export interface LevelRepository {
@@ -6,17 +9,6 @@ export interface LevelRepository {
   getLevel(id: string): Promise<LevelDef>;
   getUnitCatalog(): Promise<UnitCatalog>;
 }
-
-/** A player's best finished game on one level. */
-export interface LevelProgress {
-  bestOutcome: 'won' | 'lost';
-  /** Lives left when that best result was reached. */
-  bestLivesLeft: number;
-  /** ISO timestamp of when the stored result was recorded. */
-  updatedAt: string;
-}
-
-export type GameResult = Pick<LevelProgress, 'bestOutcome' | 'bestLivesLeft'>;
 
 /** A player's best result per level. Local today; may be backed by a server later. */
 export interface ProgressStore {

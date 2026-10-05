@@ -16,7 +16,6 @@ export interface DebugOverlay {
   setVisible(visible: boolean): void;
   /** Updates the per-entity labels from a snapshot. */
   sync(state: Readonly<SimState>): void;
-  destroy(): void;
 }
 
 /**
@@ -105,6 +104,5 @@ export function createDebugOverlay(
         }
       }
     },
-    destroy: () => root.destroy(),
   };
 }

@@ -28,11 +28,6 @@ class ViewSet<E extends { id: number; kind: string }> {
       }
     }
   }
-
-  destroy(): void {
-    for (const view of this.views.values()) view.destroy();
-    this.views.clear();
-  }
 }
 
 /** Turns snapshots into views and forwards SimEvents to the views they concern. */
@@ -69,11 +64,5 @@ export class WorldRenderer {
           this.skin.playEffect(this.scene, event);
       }
     }
-  }
-
-  destroy(): void {
-    this.towers.destroy();
-    this.enemies.destroy();
-    this.projectiles.destroy();
   }
 }

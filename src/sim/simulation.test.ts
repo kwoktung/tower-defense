@@ -427,7 +427,7 @@ describe('winning', () => {
 
 describe('splash', () => {
   /** A splash tower on slot-3 with a leader at pathT 600 and others `spacing` behind it on the same straight segment. */
-  const splashAt = (spacing: number, count = 2) =>
+  const splashTowerVsEnemiesSpaced = (spacing: number, count = 2) =>
     createSimulation(
       scenario()
         .atWave(0)
@@ -443,7 +443,7 @@ describe('splash', () => {
   };
 
   it('damages every enemy within the radius of the impact, each by the full damage', () => {
-    const sim = splashAt(20, 3);
+    const sim = splashTowerVsEnemiesSpaced(20, 3);
     const ids = sim.state.enemies.map((e) => e.id);
 
     const events = hitUntilImpact(sim);
@@ -455,15 +455,15 @@ describe('splash', () => {
   });
 
   it('includes an enemy just inside the radius and leaves one just outside untouched', () => {
-    const inside = splashAt(47.5);
-    const outside = splashAt(48.5);
+    const inside = splashTowerVsEnemiesSpaced(47.5);
+    const outside = splashTowerVsEnemiesSpaced(48.5);
 
     expect(ofType(hitUntilImpact(inside), 'enemyDamaged')).toHaveLength(2);
     expect(ofType(hitUntilImpact(outside), 'enemyDamaged')).toHaveLength(1);
   });
 
   it("still explodes at a vanished target's last position, damaging enemies near it", () => {
-    const fired = splashAt(20);
+    const fired = splashTowerVsEnemiesSpaced(20);
     fired.advance(1);
     const [leader, follower] = fired.state.enemies;
     // Remove the target mid-flight, as if another tower had just killed it.

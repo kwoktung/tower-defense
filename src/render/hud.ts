@@ -25,7 +25,6 @@ export interface HudActions {
 
 export interface Hud {
   update(model: HudModel): void;
-  destroy(): void;
 }
 
 const BAR_HEIGHT = 40;
@@ -164,7 +163,6 @@ export function createHud(scene: Phaser.Scene, theme: SkinTheme, actions: HudAct
       overlay.setVisible(model.outcome !== 'playing');
       title.setText(model.outcome === 'won' ? '胜利' : '失败');
     },
-    destroy: () => root.destroy(),
   };
 }
 

@@ -31,8 +31,8 @@ export const SplashExplosion: Story = {
     const fixture = fixtures.splashHittingCluster();
     const leader = fixture.initialState.enemies[0]!;
     const projectile = fixture.initialState.projectiles[0]!;
-    const radius = loadBundledUnits().towers.splash!.attack;
-    if (radius.mode !== 'splash') throw new Error('splash tower is not a splash attack');
+    const splashAttack = loadBundledUnits().towers.splash!.attack;
+    if (splashAttack.mode !== 'splash') throw new Error('splash tower is not a splash attack');
     // Show the explosion where the projectile is headed, without the projectile itself.
     fixture.initialState.projectiles = [];
     return mountFixtureStory(args, fixture, {
@@ -43,7 +43,7 @@ export const SplashExplosion: Story = {
           projectileId: projectile.id,
           x: projectile.destination.x,
           y: projectile.destination.y,
-          splashRadius: radius.radius,
+          splashRadius: splashAttack.radius,
         },
       ],
     });

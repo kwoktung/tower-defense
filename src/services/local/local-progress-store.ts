@@ -1,13 +1,7 @@
-import { z } from 'zod';
+import { LevelProgressSchema } from '../level-progress';
 import type { GameResult, KeyValueStorage, LevelProgress, ProgressStore } from '../types';
 
 const KEY_PREFIX = 'td:progress:';
-
-const StoredProgressSchema = z.object({
-  bestOutcome: z.enum(['won', 'lost']),
-  bestLivesLeft: z.int().nonnegative(),
-  updatedAt: z.string(),
-});
 
 const rank = (r: GameResult) => [r.bestOutcome === 'won' ? 1 : 0, r.bestLivesLeft] as const;
 
@@ -25,7 +19,7 @@ export function createLocalProgressStore(
     const raw = storage.getItem(KEY_PREFIX + levelId);
     if (raw === null) return null;
     try {
-      return StoredProgressSchema.parse(JSON.parse(raw));
+      return LevelProgressSchema.parse(JSON.parse(raw));
     } catch {
       return null;
     }

@@ -31,13 +31,6 @@ export class ScenarioBuilder {
     this.state = createInitialState(this.level, seed);
   }
 
-  /** Switches to another bundled level, resetting the state to its initial state. */
-  withLevel(id: string): this {
-    this.level = loadBundledLevel(id);
-    this.state = createInitialState(this.level, this.seed);
-    return this;
-  }
-
   withGold(gold: number): this {
     this.state.gold = gold;
     return this;
