@@ -64,6 +64,10 @@ export function createDebugOverlay(
     t.setPosition(x, y).setText(text);
   };
 
+  /** Wave state, under the HUD's top bar. */
+  const waveLine = scene.add.text(8, 46, '', TEXT_STYLE);
+  root.add(waveLine);
+
   root.setVisible(visible);
 
   return {
@@ -72,6 +76,10 @@ export function createDebugOverlay(
     },
     setVisible: (v) => root.setVisible(v),
     sync(state) {
+      const { index, autoStartTicks } = state.wave;
+      const countdown =
+        autoStartTicks === null ? '' : `  auto start ${(autoStartTicks / TICK_RATE).toFixed(1)}s`;
+      waveLine.setText(`wave ${index + 1}/${level.waves.length}${countdown}`);
       const seen = new Set<number>();
       ranges.clear();
       ranges.lineStyle(1, COLOR, 0.8);

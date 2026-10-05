@@ -15,6 +15,8 @@ export const LevelDefSchema = z
     slots: z.array(CellSchema.extend({ id: z.string().min(1) })).min(1),
     startGold: z.int().nonnegative(),
     startLives: z.int().positive(),
+    /** After a Wave is cleared, the next one starts by itself after this many seconds (Auto start). */
+    autoStartSec: z.number().positive().default(3),
     waves: z
       .array(
         z.object({

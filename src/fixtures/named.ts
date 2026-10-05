@@ -103,6 +103,18 @@ export const fixtures = {
   /** A level-2 slow tower with gold for its upgrade, which brings a splash (open its panel in stories). */
   slowTowerSelected: (): Fixture => scenario().withGold(200).withTower('slow', 'slot-6', 2).build(),
 
+  /** The first Wave still spawning: the next-wave button reads "出怪中". */
+  waveSpawning: (): Fixture =>
+    scenario()
+      .atWave(0)
+      .withSpawning({ groupIndex: 0, spawnedInGroup: 3, cooldownTicks: 20 })
+      .withEnemies('normal', 3, { atPathT: 160, spacing: 56 })
+      .build(),
+
+  /** Wave 2 cleared, the Auto start countdown running (2.5 s left). */
+  waveCountdown: (): Fixture =>
+    scenario().atWave(1).withTower('basic', 'slot-3', 2).withAutoStartIn(150).build(),
+
   /** About 150 gold spent on three level-1 basic towers, facing a dense pack. Compare with spentOnUpgrade. */
   spentOnTowers: (): Fixture =>
     scenario()

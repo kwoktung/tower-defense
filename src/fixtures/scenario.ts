@@ -65,7 +65,7 @@ export class ScenarioBuilder {
 
   /** Marks `index` as the current Wave with all of its enemies already spawned. */
   atWave(index: number): this {
-    this.state.wave = { index, spawning: null };
+    this.state.wave = { index, spawning: null, autoStartTicks: null };
     return this;
   }
 
@@ -84,6 +84,12 @@ export class ScenarioBuilder {
       cooldownTicks: 0,
       targetId: null,
     });
+    return this;
+  }
+
+  /** Puts the Auto start countdown at `ticks` before the next Wave. */
+  withAutoStartIn(ticks: number): this {
+    this.state.wave.autoStartTicks = ticks;
     return this;
   }
 

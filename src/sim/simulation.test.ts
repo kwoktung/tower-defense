@@ -48,7 +48,9 @@ describe('starting a Wave', () => {
 
     expect(sim.startNextWave()).toBe(true);
     expect(sim.state.wave.index).toBe(0);
-    expect(ofType(sim.advance(1), 'waveStarted')).toEqual([{ type: 'waveStarted', index: 0 }]);
+    expect(ofType(sim.advance(1), 'waveStarted')).toEqual([
+      { type: 'waveStarted', index: 0, trigger: 'player', bonus: 0 },
+    ]);
   });
 
   it('is refused while the current Wave is still spawning', () => {
@@ -967,5 +969,103 @@ describe('Slow', () => {
 
       expect(sim.state.enemies[0]!.slow!.factor).toBe(slowOf(1).factor);
     }
+  });
+});
+
+describe('Auto start', () => {
+  const countdown = (sim: ReturnType<typeof createSimulation>) =>
+    sim.level.autoStartSec * TICKS_PER_SECOND;
+
+  it('counts down once a Wave is cleared, then starts the next Wave by itself', () => {
+    const sim = createSimulation(scenario().atWave(0).build());
+
+    sim.advance(1);
+    expect(sim.state.wave.autoStartTicks).toBe(countdown(sim));
+
+    expect(ofType(sim.advance(countdown(sim) - 1), 'waveStarted')).toEqual([]);
+    expect(ofType(sim.advance(1), 'waveStarted')).toEqual([
+      { type: 'waveStarted', index: 1, trigger: 'auto', bonus: 0 },
+    ]);
+    expect(sim.state.wave).toMatchObject({ index: 1, autoStartTicks: null });
+    expect(sim.state.wave.spawning).not.toBeNull();
+  });
+
+  it('starts counting the tick the last enemy of the Wave is gone', () => {
+    const sim = createSimulation(
+      scenario()
+        .atWave(0)
+        .withTower('basic', SLOT_3)
+        .withEnemies('normal', 1, { atPathT: 600, hpRatio: 0.25 })
+        .build(),
+    );
+
+    let ticks = 0;
+    while (sim.state.enemies.length > 0) {
+      expect(sim.state.wave.autoStartTicks).toBeNull();
+      sim.advance(1);
+      ticks++;
+    }
+
+    expect(ticks).toBeGreaterThan(1);
+    expect(sim.state.wave.autoStartTicks).toBe(countdown(sim));
+  });
+
+  it('does not run before the first Wave, while a Wave spawns, or while enemies remain', () => {
+    const before = createSimulation(fixtures.emptyMap());
+    const spawning = createSimulation(fixtures.emptyMap());
+    spawning.startNextWave();
+    const enemies = createSimulation(fixtures.oneOfEachEnemy());
+
+    for (const sim of [before, spawning, enemies]) {
+      sim.advance(10);
+      expect(sim.state.wave.autoStartTicks).toBeNull();
+    }
+  });
+
+  it('does not run after the last Wave: the game is won instead', () => {
+    const sim = createSimulation(scenario().atLastWave().build());
+
+    sim.advance(1);
+
+    expect(sim.state.outcome).toBe('won');
+    expect(sim.state.wave.autoStartTicks).toBeNull();
+  });
+
+  it('ends when the player starts the next Wave during the countdown', () => {
+    const sim = createSimulation(scenario().atWave(0).withAutoStartIn(100).build());
+
+    expect(sim.startNextWave()).toBe(true);
+
+    expect(sim.state.wave).toMatchObject({ index: 1, autoStartTicks: null });
+    expect(ofType(sim.advance(1), 'waveStarted')).toEqual([
+      { type: 'waveStarted', index: 1, trigger: 'player', bonus: 0 },
+    ]);
+  });
+
+  it('ends with the game', () => {
+    const sim = createSimulation(
+      scenario()
+        .atWave(0)
+        .withAutoStartIn(100)
+        .withLives(1)
+        .withEnemies('fast', 1, { atPathT: 2430 })
+        .build(),
+    );
+
+    sim.advance(1);
+
+    expect(sim.state.outcome).toBe('lost');
+    expect(sim.state.wave.autoStartTicks).toBeNull();
+    expect(ofType(sim.advance(200), 'waveStarted')).toEqual([]);
+  });
+
+  it("uses the level's auto-start time, 3 s when the level leaves it out", () => {
+    const fixture = scenario().atWave(0).build();
+    const sim = createSimulation({ ...fixture, level: { ...fixture.level, autoStartSec: 0.5 } });
+
+    sim.advance(1);
+
+    expect(fixture.level.autoStartSec).toBe(3);
+    expect(sim.state.wave.autoStartTicks).toBe(30);
   });
 });

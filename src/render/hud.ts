@@ -2,6 +2,7 @@ import type * as Phaser from 'phaser';
 import { towerStats } from '../content/schemas';
 import { GAME_HEIGHT, GAME_WIDTH } from '../game-config';
 import type { Simulation } from '../sim/simulation';
+import { TICK_RATE } from '../sim/time';
 import type { Outcome } from '../sim/types';
 import { colorNumber, type SkinTheme } from './skin';
 
@@ -14,7 +15,8 @@ export interface HudModel {
   /** 1-based number of the current Wave; 0 before the first Wave. */
   waveNumber: number;
   waveCount: number;
-  canStartNextWave: boolean;
+  /** The next-wave button: what it says and whether it can be pressed. */
+  nextWave: { label: string; enabled: boolean };
   outcome: Outcome;
 }
 
@@ -171,11 +173,25 @@ export function createHud(scene: Phaser.Scene, theme: SkinTheme, actions: HudAct
       lives.setText(`生命 ${model.lives}`);
       gold.setText(`金币 ${model.gold}`);
       wave.setText(`第 ${model.waveNumber} / ${model.waveCount} 波`);
-      nextWave.setEnabled(model.canStartNextWave);
+      nextWave.setLabel(model.nextWave.label);
+      nextWave.setEnabled(model.nextWave.enabled);
       overlay.setVisible(model.outcome !== 'playing');
       title.setText(model.outcome === 'won' ? '胜利' : '失败');
     },
   };
+}
+
+/** The next-wave button for the current state; the Simulation decides whether a Wave may start. */
+export function nextWaveButton(sim: Simulation): HudModel['nextWave'] {
+  const { wave } = sim.state;
+  const enabled = sim.canStartNextWave();
+  if (wave.index < 0) return { label: '开始第 1 波', enabled };
+  if (wave.index >= sim.level.waves.length - 1) return { label: '最后一波', enabled: false };
+  if (wave.spawning) return { label: '出怪中', enabled: false };
+  if (wave.autoStartTicks !== null) {
+    return { label: `下一波 ${Math.ceil(wave.autoStartTicks / TICK_RATE)}`, enabled };
+  }
+  return { label: '清场后开波', enabled };
 }
 
 /** Reads the HUD's model off a Simulation's current snapshot and the kind chosen to build. */
@@ -192,7 +208,7 @@ export function hudModelOf(sim: Simulation, buildKind: string | null): HudModel 
     })),
     waveNumber: sim.state.wave.index + 1,
     waveCount: sim.level.waves.length,
-    canStartNextWave: sim.canStartNextWave(),
+    nextWave: nextWaveButton(sim),
     outcome: sim.state.outcome,
   };
 }
