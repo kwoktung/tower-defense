@@ -157,7 +157,16 @@ interface Result {
 }
 
 /** The acceptance criteria for level 1 (armor-and-slow spec), per strategy. */
-const STRATEGIES: { name: string; bot: Bot; expect: string; ok: (r: Result) => boolean }[] = [
+interface Strategy {
+  name: string;
+  bot: Bot;
+  /** Call each next Wave as soon as the current one has spawned (an Early call when enemies remain). */
+  earlyCall?: boolean;
+  expect: string;
+  ok: (r: Result) => boolean;
+}
+
+const STRATEGIES: Strategy[] = [
   {
     name: 'basic, 1 tower then upgrade',
     bot: upgradeAfter('basic', 1),
@@ -206,20 +215,34 @@ const STRATEGIES: { name: string; bot: Bot; expect: string; ok: (r: Result) => b
     expect: '(for reference)',
     ok: () => true,
   },
+  {
+    name: 'mixed plan A, always early call',
+    bot: plan(MIXED_A),
+    earlyCall: true,
+    expect: '(for reference)',
+    ok: () => true,
+  },
 ];
 
-function playLevel(bot: Bot): Result & { towers: string } {
+function playLevel({
+  bot,
+  earlyCall = false,
+}: Strategy): Result & { towers: string; bonus: number } {
   const sim = createSimulation(scenario().build());
+  let bonus = 0;
   while (sim.state.outcome === 'playing') {
     bot(sim);
-    // Only on a clear field: these strategies never make an Early call.
-    if (sim.canStartNextWave() && sim.state.enemies.length === 0) sim.startNextWave();
+    // Without earlyCall, only on a clear field, so the strategy never makes an Early call.
+    if (sim.canStartNextWave() && (earlyCall || sim.state.enemies.length === 0)) {
+      const started = sim.startNextWave();
+      if (started.ok) bonus += started.bonus;
+    }
     sim.advance(30);
   }
   const { wave, outcome, lives } = sim.state;
   const cleared = outcome === 'won' ? wave.index + 1 : wave.index;
   const towers = sim.state.towers.map((t) => `${t.kind} Lv${t.level}`).join(', ');
-  return { outcome, lives, cleared, towers };
+  return { outcome, lives, cleared, towers, bonus };
 }
 
 describe.runIf(process.env.BALANCE)('balance report', () => {
@@ -243,11 +266,12 @@ describe.runIf(process.env.BALANCE)('balance report', () => {
 
     const waves = base.level.waves.length;
     lines.push(`Level 1 (${waves} waves) with scripted strategies:`);
-    for (const { name, bot, expect: wanted, ok } of STRATEGIES) {
-      const r = playLevel(bot);
-      const mark = ok(r) ? 'ok  ' : 'FAIL';
+    for (const strategy of STRATEGIES) {
+      const r = playLevel(strategy);
+      const mark = strategy.ok(r) ? 'ok  ' : 'FAIL';
+      const bonus = r.bonus > 0 ? `, early-call bonus ${r.bonus}` : '';
       lines.push(
-        `  ${mark} ${name.padEnd(30)} want ${wanted.padEnd(18)} got ${r.outcome}, lives ${r.lives}, cleared ${r.cleared}/${waves}: ${r.towers}`,
+        `  ${mark} ${strategy.name.padEnd(32)} want ${strategy.expect.padEnd(18)} got ${r.outcome}, lives ${r.lives}, cleared ${r.cleared}/${waves}${bonus}: ${r.towers}`,
       );
     }
 

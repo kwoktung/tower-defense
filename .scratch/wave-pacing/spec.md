@@ -1,6 +1,6 @@
 # Spec: 开波节奏：自动开波与提前叫波
 
-Status: ready-for-agent
+Status: done
 
 ## Problem Statement
 
