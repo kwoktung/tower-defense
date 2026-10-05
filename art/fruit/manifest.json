@@ -1,0 +1,47 @@
+{
+  "$comment": "Which raw image becomes which atlas frames. Sheets list frames left to right; box is the largest side, in pixels, of the sheet's largest frame (2x its display size); the other frames keep their size relative to it. Textures are cropped square and kept out of the atlas.",
+  "sprites": [
+    {
+      "source": "tower-basic-levels.jpeg",
+      "frames": ["tower-basic-1", "tower-basic-2", "tower-basic-3"],
+      "box": 160
+    },
+    {
+      "source": "tower-splash-levels.jpeg",
+      "frames": ["tower-splash-1", "tower-splash-2", "tower-splash-3"],
+      "box": 160
+    },
+    {
+      "source": "tower-slow-levels.jpeg",
+      "frames": ["tower-slow-1", "tower-slow-2", "tower-slow-3"],
+      "box": 160
+    },
+    {
+      "source": "enemies.jpeg",
+      "frames": ["enemy-normal", "enemy-fast", "enemy-armored"],
+      "box": 100
+    },
+    {
+      "source": "projectiles.jpeg",
+      "frames": ["projectile-basic", "projectile-splash", "projectile-slow"],
+      "box": 36
+    },
+    {
+      "source": "slot.jpeg",
+      "frames": ["slot"],
+      "box": 108
+    }
+  ],
+  "textures": [
+    {
+      "source": "texture-grass.jpeg",
+      "name": "grass",
+      "size": 128
+    },
+    {
+      "source": "texture-dirt.jpeg",
+      "name": "dirt",
+      "size": 128
+    }
+  ]
+}

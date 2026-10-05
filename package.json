@@ -16,7 +16,8 @@
     "test:unit": "vitest run --project unit",
     "test:stories": "vitest run --project storybook",
     "shots": "node scripts/shots.ts",
-    "balance": "BALANCE=1 vitest run --project unit src/sim/balance.test.ts"
+    "balance": "BALANCE=1 vitest run --project unit src/sim/balance.test.ts",
+    "art:fruit": "node scripts/art-fruit.ts"
   },
   "dependencies": {
     "phaser": "^4.2.1",
