@@ -74,7 +74,8 @@ export class GameScene extends Phaser.Scene {
         this.scene.restart(next);
       },
     };
-    this.scene.stop(SceneKeys.Hud);
+    // Runs the HUD alongside this scene. On restart the HUD is already running, and launch
+    // shuts it down and starts it again with the new Simulation.
     this.scene.launch(SceneKeys.Hud, hud);
   }
 
