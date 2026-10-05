@@ -24,7 +24,9 @@ Use these terms in code, tickets, commits and reviews. Avoid the listed synonyms
 - **Splash** — Attack mode that damages every Enemy within a radius of the impact point.
 - **Armor** — A flat reduction an Enemy applies to every hit: damage taken is the damage minus Armor, but never less than 20% of the damage. Defaults to 0. Applied per Enemy, so a Splash hit is reduced separately for each victim.
 - **Slow** — An on-hit effect a Tower level may carry, independent of its attack mode: the Enemy hit moves at (1 − factor) of its speed for a duration. Slows don't stack: a hit at least as strong replaces the current Slow and restarts its duration; a weaker one is ignored. Armor reduces damage, never Slow. _Avoid:_ freeze, chill.
-- **Wave** — One numbered round of enemies, started by the player. Made of ordered **spawn groups** (`kind`, `count`, `interval`).
+- **Wave** — One numbered round of enemies. The player starts the first; later ones start by **Auto start** or an **Early call**. Made of ordered **spawn groups** (`kind`, `count`, `interval`). Only one Wave spawns at a time.
+- **Auto start** — After a Wave has fully spawned and the field is clear, a countdown (the level's auto-start seconds) starts the next Wave by itself. The player may start it sooner during the countdown, for no bonus. _Avoid:_ autoplay.
+- **Early call** — Starting the next Wave once the current one has fully spawned while enemies are still on the field. It pays an **early-call bonus**: living enemies × the level's gold per enemy. _Avoid:_ skip, rush.
 - **Leak** — An Enemy reaching the end of the Path; costs lives. _Avoid:_ escape.
 - **Unit catalog** — Config describing every Tower and Enemy kind's stats, per Tower level for Towers. It holds no art (ADR-0002).
 - **Level definition** — Config describing the grid, Path, Slots, starting gold/lives and Waves.
