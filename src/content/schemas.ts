@@ -17,6 +17,8 @@ export const LevelDefSchema = z
     startLives: z.int().positive(),
     /** After a Wave is cleared, the next one starts by itself after this many seconds (Auto start). */
     autoStartSec: z.number().positive().default(3),
+    /** Gold per living enemy paid for an Early call. */
+    earlyCallGoldPerEnemy: z.number().nonnegative().default(1),
     waves: z
       .array(
         z.object({

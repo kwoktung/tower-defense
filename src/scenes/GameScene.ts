@@ -10,7 +10,7 @@ import { slotAt } from '../sim/path';
 import { createSimulation } from '../sim/simulation';
 import type { SimEvent } from '../sim/types';
 import type { ProgressStore } from '../services/types';
-import type { HudSceneData } from './HudScene';
+import { SIM_EVENTS, type HudSceneData } from './HudScene';
 import { SceneKeys } from './keys';
 import {
   clickMap,
@@ -38,6 +38,8 @@ export class GameScene extends Phaser.Scene {
   private progress!: ProgressStore;
   private ui!: UiState;
   private selection!: TowerSelectionView;
+  /** A fresh emitter per game, so a restarted HUD never hears the old Simulation. */
+  private simEvents!: Phaser.Events.EventEmitter;
 
   constructor() {
     super(SceneKeys.Game);
@@ -70,8 +72,10 @@ export class GameScene extends Phaser.Scene {
       overlay.setVisible(!overlay.visible);
     });
 
+    this.simEvents = new Phaser.Events.EventEmitter();
     const hud: HudSceneData = {
       sim,
+      simEvents: this.simEvents,
       ui,
       theme: skin.theme,
       onRestart: () => {
@@ -86,9 +90,11 @@ export class GameScene extends Phaser.Scene {
   }
 
   override update(_time: number, deltaMs: number) {
-    for (const event of this.runner.tick(deltaMs)) {
+    const events = this.runner.tick(deltaMs);
+    for (const event of events) {
       if (event.type === 'gameEnded') this.saveResult(event);
     }
+    if (events.length) this.simEvents.emit(SIM_EVENTS, events);
     dropStaleSelection(this.runner.sim, this.ui);
     this.selection.update(
       towerPanelModelOf(this.runner.sim, this.ui.selectedTowerId, this.ui.confirmingSell),

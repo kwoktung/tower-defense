@@ -111,6 +111,21 @@ export const fixtures = {
       .withEnemies('normal', 3, { atPathT: 160, spacing: 56 })
       .build(),
 
+  /**
+   * Wave 2 just finished spawning with a pack still on the field and a mixed defence up: the
+   * next-wave button offers an Early call for the living enemies.
+   */
+  earlyCallReady: (): Fixture =>
+    scenario()
+      .atWave(1)
+      .withGold(60)
+      .withTower('basic', 'slot-3', 2)
+      .withTower('slow', 'slot-7')
+      .withTower('basic', 'slot-6', 2)
+      .withEnemies('normal', 8, { atPathT: 500, spacing: 36 })
+      .withEnemies('fast', 4, { atPathT: 160, spacing: 30 })
+      .build(),
+
   /** Wave 2 cleared, the Auto start countdown running (2.5 s left). */
   waveCountdown: (): Fixture =>
     scenario().atWave(1).withTower('basic', 'slot-3', 2).withAutoStartIn(150).build(),

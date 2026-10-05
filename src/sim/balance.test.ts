@@ -212,7 +212,8 @@ function playLevel(bot: Bot): Result & { towers: string } {
   const sim = createSimulation(scenario().build());
   while (sim.state.outcome === 'playing') {
     bot(sim);
-    if (sim.canStartNextWave()) sim.startNextWave();
+    // Only on a clear field: these strategies never make an Early call.
+    if (sim.canStartNextWave() && sim.state.enemies.length === 0) sim.startNextWave();
     sim.advance(30);
   }
   const { wave, outcome, lives } = sim.state;

@@ -2,23 +2,38 @@ import type { SimContext } from '../context';
 import { secondsToTicks } from '../time';
 import type { SimEvent, SimState } from '../types';
 
+/** The next Wave may start once the current one has fully spawned, enemies on the field or not. */
 export function canStartNextWave(state: SimState, ctx: SimContext): boolean {
   return (
     state.outcome === 'playing' &&
     state.wave.spawning === null &&
-    state.enemies.length === 0 &&
     state.wave.index + 1 < ctx.level.waves.length
   );
 }
 
-/** Starts the next Wave (the caller has checked it may start); any Auto start countdown ends. */
-export function startNextWave(state: SimState, trigger: 'player' | 'auto'): SimEvent {
+/** The Early call bonus starting the next Wave would pay now: living enemies × the level's rate. */
+export function nextWaveBonus(state: SimState, ctx: SimContext): number {
+  if (!canStartNextWave(state, ctx)) return 0;
+  return Math.floor(state.enemies.length * ctx.level.earlyCallGoldPerEnemy);
+}
+
+/**
+ * Starts the next Wave (the caller has checked it may start), paying any Early call bonus;
+ * any Auto start countdown ends.
+ */
+export function startNextWave(
+  state: SimState,
+  ctx: SimContext,
+  trigger: 'player' | 'auto',
+): Extract<SimEvent, { type: 'waveStarted' }> {
+  const bonus = nextWaveBonus(state, ctx);
+  state.gold += bonus;
   state.wave = {
     index: state.wave.index + 1,
     spawning: { groupIndex: 0, spawnedInGroup: 0, cooldownTicks: 0 },
     autoStartTicks: null,
   };
-  return { type: 'waveStarted', index: state.wave.index, trigger, bonus: 0 };
+  return { type: 'waveStarted', index: state.wave.index, trigger, bonus };
 }
 
 /**
@@ -32,12 +47,13 @@ export function autoStart(state: SimState, ctx: SimContext, events: SimEvent[]):
     return;
   }
   if (wave.autoStartTicks === null) {
-    if (wave.index >= 0 && canStartNextWave(state, ctx)) {
+    // Only a cleared field counts down; with enemies left, the next Wave waits or is called early.
+    if (wave.index >= 0 && state.enemies.length === 0 && canStartNextWave(state, ctx)) {
       wave.autoStartTicks = secondsToTicks(ctx.level.autoStartSec);
     }
     return;
   }
-  if (--wave.autoStartTicks <= 0) events.push(startNextWave(state, 'auto'));
+  if (--wave.autoStartTicks <= 0) events.push(startNextWave(state, ctx, 'auto'));
 }
 
 /** Spawns at most one enemy per tick at the start of the Path, walking the Wave's spawn groups in order. */

@@ -3,7 +3,7 @@ import { towerStats } from '../content/schemas';
 import { GAME_HEIGHT, GAME_WIDTH } from '../game-config';
 import type { Simulation } from '../sim/simulation';
 import { TICK_RATE } from '../sim/time';
-import type { Outcome } from '../sim/types';
+import type { Outcome, SimEvent } from '../sim/types';
 import { colorNumber, type SkinTheme } from './skin';
 
 /** Everything the HUD shows, derived from one SimState snapshot. */
@@ -15,8 +15,8 @@ export interface HudModel {
   /** 1-based number of the current Wave; 0 before the first Wave. */
   waveNumber: number;
   waveCount: number;
-  /** The next-wave button: what it says and whether it can be pressed. */
-  nextWave: { label: string; enabled: boolean };
+  /** The next-wave button: what it says, whether it can be pressed, and whether it offers gold. */
+  nextWave: { label: string; enabled: boolean; bonus?: boolean };
   outcome: Outcome;
 }
 
@@ -28,6 +28,8 @@ export interface HudActions {
 
 export interface Hud {
   update(model: HudModel): void;
+  /** One-off HUD feedback for SimEvents, e.g. an Early call bonus floating up from the gold. */
+  playEvents(events: readonly SimEvent[]): void;
 }
 
 /** Height of the top bar; world UI such as the tower panel stays below it. */
@@ -36,6 +38,8 @@ const PAD = 12;
 /** Centre x of the first build button. */
 const TOWERS_X = 380;
 const TOWER_BUTTON_WIDTH = 110;
+/** How long the Early call bonus floats beside the gold. */
+const BONUS_FLOAT_MS = 600;
 
 export interface Button {
   root: Phaser.GameObjects.Container;
@@ -173,10 +177,31 @@ export function createHud(scene: Phaser.Scene, theme: SkinTheme, actions: HudAct
       lives.setText(`生命 ${model.lives}`);
       gold.setText(`金币 ${model.gold}`);
       wave.setText(`第 ${model.waveNumber} / ${model.waveCount} 波`);
-      nextWave.setLabel(model.nextWave.label);
+      nextWave.setLabel(model.nextWave.label, model.nextWave.bonus ? theme.colors.gold : undefined);
       nextWave.setEnabled(model.nextWave.enabled);
       overlay.setVisible(model.outcome !== 'playing');
       title.setText(model.outcome === 'won' ? '胜利' : '失败');
+    },
+    playEvents(events) {
+      for (const event of events) {
+        if (event.type !== 'waveStarted' || event.bonus <= 0) continue;
+        const float = scene.add
+          .text(gold.x + gold.width + 8, gold.y, `+${event.bonus}`, {
+            ...textStyle,
+            color: theme.colors.gold,
+            fontStyle: 'bold',
+          })
+          .setOrigin(0, 0.5);
+        root.add(float);
+        scene.tweens.add({
+          targets: float,
+          y: gold.y + 18,
+          alpha: 0,
+          duration: BONUS_FLOAT_MS,
+          ease: 'Quad.easeIn',
+          onComplete: () => float.destroy(),
+        });
+      }
     },
   };
 }
@@ -191,7 +216,7 @@ export function nextWaveButton(sim: Simulation): HudModel['nextWave'] {
   if (wave.autoStartTicks !== null) {
     return { label: `下一波 ${Math.ceil(wave.autoStartTicks / TICK_RATE)}`, enabled };
   }
-  return { label: '清场后开波', enabled };
+  return { label: `提前开波 +${sim.nextWaveBonus()}`, enabled, bonus: true };
 }
 
 /** Reads the HUD's model off a Simulation's current snapshot and the kind chosen to build. */
