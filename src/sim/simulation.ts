@@ -19,7 +19,13 @@ import {
   type SellTowerResult,
   type UpgradeCheck,
 } from './systems/towers';
-import { autoStart, canStartNextWave, spawnEnemies, startNextWave } from './systems/waves';
+import {
+  autoStart,
+  canStartNextWave,
+  nextWaveBonus,
+  spawnEnemies,
+  startNextWave,
+} from './systems/waves';
 import type { SimEvent, SimState } from './types';
 
 export interface SimulationInput {
@@ -36,9 +42,15 @@ export interface Simulation {
   readonly state: Readonly<SimState>;
   /** Advances `ticks` fixed steps and returns every SimEvent produced, oldest first. */
   advance(ticks: number): SimEvent[];
+  /** Whether the next Wave may start now: the current one has fully spawned and one remains. */
   canStartNextWave(): boolean;
-  /** Starts the next Wave if allowed; its spawning begins on the next advanced tick. */
-  startNextWave(): boolean;
+  /**
+   * Starts the next Wave if allowed, paying its Early call bonus (0 on a clear field); spawning
+   * begins on the next advanced tick.
+   */
+  startNextWave(): StartWaveResult;
+  /** The Early call bonus `startNextWave()` would pay now; 0 when no Wave may start. */
+  nextWaveBonus(): number;
   /** Builds a tower on an empty Slot; the towerPlaced event arrives with the next advance. */
   placeTower(slotId: string, kind: string): PlaceTowerResult;
   /** Whether `placeTower(slotId, kind)` would succeed now, and if not, why. Changes nothing. */
@@ -66,6 +78,8 @@ export type {
   UpgradeCheck,
   UpgradeTowerFailure,
 } from './systems/towers';
+
+export type StartWaveResult = { ok: true; bonus: number } | { ok: false };
 
 export function createInitialState(level: LevelDef, seed: number): SimState {
   return {
@@ -115,10 +129,12 @@ export function createSimulation(input: SimulationInput): Simulation {
     },
     canStartNextWave: () => canStartNextWave(state, ctx),
     startNextWave() {
-      if (!canStartNextWave(state, ctx)) return false;
-      pending.push(startNextWave(state, 'player'));
-      return true;
+      if (!canStartNextWave(state, ctx)) return { ok: false };
+      const event = startNextWave(state, ctx, 'player');
+      pending.push(event);
+      return { ok: true, bonus: event.bonus };
     },
+    nextWaveBonus: () => nextWaveBonus(state, ctx),
     placeTower: (slotId, kind) => placeTower(state, ctx, slotId, kind, pending),
     canPlaceTower: (slotId, kind) => checkPlacement(state, ctx, slotId, kind),
     canAfford: (kind) => canAfford(state, ctx, kind),

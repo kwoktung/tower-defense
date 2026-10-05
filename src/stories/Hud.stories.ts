@@ -21,8 +21,20 @@ type Story = StoryObj<HudArgs>;
 export const Default: Story = { args: { fixture: 'emptyMap' } };
 /** The current Wave still spawning: "出怪中", disabled. */
 export const WaveSpawning: Story = { args: { fixture: 'waveSpawning' } };
-/** Spawned, enemies still on the field: "清场后开波", disabled (an Early call comes later). */
-export const CannotStartWave: Story = { args: { fixture: 'oneOfEachEnemy' } };
+/** Spawned, enemies still on the field: "提前开波 +12" in gold, enabled (an Early call). */
+export const EarlyCall: Story = { args: { fixture: 'earlyCallReady' } };
+/** Just made an Early call: "+12" floats from the gold (frozen at its first frame). */
+export const EarlyCallBonus: Story = {
+  args: { fixture: 'earlyCallReady' },
+  render: (args) => {
+    const fixture = fixtures[args.fixture]();
+    const bonus = fixture.initialState.enemies.length * fixture.level.earlyCallGoldPerEnemy;
+    return mountFixtureStory(args, fixture, {
+      ui: { hud: true },
+      effects: [{ type: 'waveStarted', index: 2, trigger: 'player', bonus }],
+    });
+  },
+};
 /** The Auto start countdown: "下一波 3", enabled to start now. */
 export const AutoStartCountdown: Story = { args: { fixture: 'waveCountdown' } };
 /** Not enough gold for any tower: build buttons are disabled. */

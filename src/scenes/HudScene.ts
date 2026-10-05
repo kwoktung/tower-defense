@@ -4,14 +4,20 @@ import type { SkinTheme } from '../render/skin';
 import { createTowerPanel, towerPanelModelOf, type TowerPanel } from '../render/tower-panel';
 import type { Simulation } from '../sim/simulation';
 import { SceneKeys } from './keys';
+import type { SimEvent } from '../sim/types';
 import { chooseBuildKind, selectTower, type UiState } from './ui-state';
 
 export interface HudSceneData {
   sim: Simulation;
+  /** Emits `SIM_EVENTS` with each frame's SimEvents, for one-off HUD feedback. */
+  simEvents: Phaser.Events.EventEmitter;
   ui: UiState;
   theme: SkinTheme;
   onRestart(): void;
 }
+
+/** The event on `HudSceneData.simEvents` carrying one frame's SimEvents. */
+export const SIM_EVENTS = 'simEvents';
 
 /** How long the sell button waits for its confirming second press. */
 const SELL_CONFIRM_MS = 3000;
@@ -32,7 +38,7 @@ export class HudScene extends Phaser.Scene {
     super(SceneKeys.Hud);
   }
 
-  create({ sim, ui, theme, onRestart }: HudSceneData) {
+  create({ sim, simEvents, ui, theme, onRestart }: HudSceneData) {
     this.sim = sim;
     this.ui = ui;
     this.hud = createHud(this, theme, {
@@ -47,6 +53,7 @@ export class HudScene extends Phaser.Scene {
       },
       onSell: (towerId) => this.sell(towerId),
     });
+    simEvents.on(SIM_EVENTS, (events: SimEvent[]) => this.hud.playEvents(events));
     this.redraw();
   }
 

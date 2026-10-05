@@ -81,11 +81,6 @@ export function mountFixtureStory(
       skin.createMap(scene, fixture.level).setHover(slotHoverFor(sim, hoverSlot ?? null, uiState));
       const runner = createWorldRunner(scene, { sim, skin, debug });
       runner.render(effects);
-      if (effects.length) {
-        // Freeze tweens and timers so flashes and pulses stay at their first frame.
-        scene.tweens.pauseAll();
-        scene.time.paused = true;
-      }
 
       const hudView = hud
         ? createHud(scene, skin.theme, {
@@ -106,11 +101,18 @@ export function mountFixtureStory(
         panel.update(model);
       };
       drawUi();
+      hudView?.playEvents(effects);
+      if (effects.length) {
+        // Freeze tweens and timers so flashes, pulses and floats stay at their first frame.
+        scene.tweens.pauseAll();
+        scene.time.paused = true;
+      }
 
       if (running) {
         scene.events.on('update', (_time: number, deltaMs: number) => {
-          runner.tick(deltaMs, speed);
+          const events = runner.tick(deltaMs, speed);
           drawUi();
+          hudView?.playEvents(events);
         });
       }
 

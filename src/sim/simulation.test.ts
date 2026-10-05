@@ -46,7 +46,7 @@ describe('starting a Wave', () => {
   it('is allowed before the first Wave and reports waveStarted on the next advance', () => {
     const sim = createSimulation(fixtures.emptyMap());
 
-    expect(sim.startNextWave()).toBe(true);
+    expect(sim.startNextWave().ok).toBe(true);
     expect(sim.state.wave.index).toBe(0);
     expect(ofType(sim.advance(1), 'waveStarted')).toEqual([
       { type: 'waveStarted', index: 0, trigger: 'player', bonus: 0 },
@@ -59,26 +59,28 @@ describe('starting a Wave', () => {
     sim.advance(1);
 
     expect(sim.canStartNextWave()).toBe(false);
-    expect(sim.startNextWave()).toBe(false);
+    expect(sim.startNextWave().ok).toBe(false);
   });
 
-  it('is refused while enemies are on the field', () => {
+  it('is allowed once the current Wave has fully spawned, even with enemies on the field', () => {
     const sim = createSimulation(fixtures.oneOfEachEnemy());
 
-    expect(sim.startNextWave()).toBe(false);
+    expect(sim.canStartNextWave()).toBe(true);
+    expect(sim.startNextWave().ok).toBe(true);
+    expect(sim.state.wave.index).toBe(1);
   });
 
   it('is allowed again once the Wave has fully spawned and the field is clear', () => {
     const sim = createSimulation(scenario().atWave(0).build());
 
-    expect(sim.startNextWave()).toBe(true);
+    expect(sim.startNextWave().ok).toBe(true);
     expect(sim.state.wave.index).toBe(1);
   });
 
   it('is refused after the last Wave', () => {
     const sim = createSimulation(scenario().atLastWave().build());
 
-    expect(sim.startNextWave()).toBe(false);
+    expect(sim.startNextWave().ok).toBe(false);
   });
 
   it('is refused once the game has ended', () => {
@@ -88,7 +90,7 @@ describe('starting a Wave', () => {
     sim.advance(1);
 
     expect(sim.state.outcome).toBe('lost');
-    expect(sim.startNextWave()).toBe(false);
+    expect(sim.startNextWave().ok).toBe(false);
   });
 });
 
@@ -1034,7 +1036,7 @@ describe('Auto start', () => {
   it('ends when the player starts the next Wave during the countdown', () => {
     const sim = createSimulation(scenario().atWave(0).withAutoStartIn(100).build());
 
-    expect(sim.startNextWave()).toBe(true);
+    expect(sim.startNextWave().ok).toBe(true);
 
     expect(sim.state.wave).toMatchObject({ index: 1, autoStartTicks: null });
     expect(ofType(sim.advance(1), 'waveStarted')).toEqual([
@@ -1067,5 +1069,70 @@ describe('Auto start', () => {
 
     expect(fixture.level.autoStartSec).toBe(3);
     expect(sim.state.wave.autoStartTicks).toBe(30);
+  });
+});
+
+describe('Early call', () => {
+  const rate = (sim: ReturnType<typeof createSimulation>) => sim.level.earlyCallGoldPerEnemy;
+
+  it('pays living enemies × the level rate, at once', () => {
+    const sim = createSimulation(
+      scenario().atWave(0).withGold(10).withEnemies('normal', 7, { atPathT: 600 }).build(),
+    );
+    const bonus = Math.floor(7 * rate(sim));
+    expect(bonus).toBeGreaterThan(0);
+
+    expect(sim.nextWaveBonus()).toBe(bonus);
+    expect(sim.startNextWave()).toEqual({ ok: true, bonus });
+
+    expect(sim.state.gold).toBe(10 + bonus);
+    expect(ofType(sim.advance(1), 'waveStarted')).toEqual([
+      { type: 'waveStarted', index: 1, trigger: 'player', bonus },
+    ]);
+  });
+
+  it('counts enemies left from earlier Waves too', () => {
+    const sim = createSimulation(
+      scenario()
+        .atWave(1)
+        .withEnemies('normal', 2, { atPathT: 2000 })
+        .withEnemies('fast', 3, { atPathT: 300 })
+        .build(),
+    );
+
+    expect(sim.nextWaveBonus()).toBe(Math.floor(5 * rate(sim)));
+  });
+
+  it('pays nothing on a clear field, as during the Auto start countdown', () => {
+    const sim = createSimulation(scenario().atWave(0).withAutoStartIn(100).build());
+
+    expect(sim.nextWaveBonus()).toBe(0);
+    expect(sim.startNextWave()).toEqual({ ok: true, bonus: 0 });
+  });
+
+  it('is refused while the current Wave still spawns, and offers no bonus then', () => {
+    const sim = createSimulation(fixtures.waveSpawning());
+
+    expect(sim.nextWaveBonus()).toBe(0);
+    expect(sim.startNextWave()).toEqual({ ok: false });
+  });
+
+  it('does not start the Auto start countdown while enemies remain', () => {
+    const sim = createSimulation(fixtures.oneOfEachEnemy());
+
+    sim.advance(10);
+
+    expect(sim.state.wave.autoStartTicks).toBeNull();
+  });
+
+  it("uses the level's rate, 1 gold per enemy when the level leaves it out", () => {
+    const fixture = scenario().atWave(0).withEnemies('normal', 4, { atPathT: 600 }).build();
+    const sim = createSimulation({
+      ...fixture,
+      level: { ...fixture.level, earlyCallGoldPerEnemy: 2.5 },
+    });
+
+    expect(fixture.level.earlyCallGoldPerEnemy).toBe(1);
+    expect(sim.nextWaveBonus()).toBe(10);
   });
 });
