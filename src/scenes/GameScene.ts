@@ -1,13 +1,25 @@
 import * as Phaser from 'phaser';
 import type { LevelDef, UnitCatalog } from '../content/schemas';
 import type { MapView, Skin } from '../render/skin';
+import {
+  createTowerSelection,
+  towerPanelModelOf,
+  type TowerSelectionView,
+} from '../render/tower-panel';
 import { slotAt } from '../sim/path';
 import { createSimulation } from '../sim/simulation';
 import type { SimEvent } from '../sim/types';
 import type { ProgressStore } from '../services/types';
 import type { HudSceneData } from './HudScene';
 import { SceneKeys } from './keys';
-import { defaultSelectedTower, slotHoverFor, type UiState } from './ui-state';
+import {
+  clickMap,
+  createUiState,
+  dropStaleSelection,
+  selectTower,
+  slotHoverFor,
+  type UiState,
+} from './ui-state';
 import { createWorldRunner, type WorldRunner } from './world-runner';
 
 export interface GameSceneData {
@@ -24,6 +36,8 @@ export class GameScene extends Phaser.Scene {
   private runner!: WorldRunner;
   private mapView!: MapView;
   private progress!: ProgressStore;
+  private ui!: UiState;
+  private selection!: TowerSelectionView;
 
   constructor() {
     super(SceneKeys.Game);
@@ -37,18 +51,20 @@ export class GameScene extends Phaser.Scene {
     this.runner = createWorldRunner(this, { sim, skin, debug });
     this.runner.render();
 
-    const ui: UiState = { selectedTower: defaultSelectedTower(units) };
+    const ui = createUiState(units);
+    this.ui = ui;
+    this.selection = createTowerSelection(this, skin.theme, level);
     const slotUnder = (pointer: Phaser.Input.Pointer) =>
       slotAt(level, pointer.worldX, pointer.worldY);
     const updateHover = (pointer: Phaser.Input.Pointer) => {
-      this.mapView.setHover(slotHoverFor(sim, slotUnder(pointer), ui.selectedTower));
+      this.mapView.setHover(slotHoverFor(sim, slotUnder(pointer), ui));
     };
     this.input.on(Phaser.Input.Events.POINTER_MOVE, updateHover);
     this.input.on(Phaser.Input.Events.POINTER_DOWN, (pointer: Phaser.Input.Pointer) => {
-      const slotId = slotUnder(pointer);
-      if (slotId && ui.selectedTower) sim.placeTower(slotId, ui.selectedTower);
+      clickMap(sim, ui, slotUnder(pointer));
       updateHover(pointer);
     });
+    this.input.keyboard?.on('keydown-ESC', () => selectTower(ui, null));
     this.input.keyboard?.on('keydown-D', () => {
       const overlay = this.runner.debugOverlay;
       overlay.setVisible(!overlay.visible);
@@ -73,6 +89,10 @@ export class GameScene extends Phaser.Scene {
     for (const event of this.runner.tick(deltaMs)) {
       if (event.type === 'gameEnded') this.saveResult(event);
     }
+    dropStaleSelection(this.runner.sim, this.ui);
+    this.selection.update(
+      towerPanelModelOf(this.runner.sim, this.ui.selectedTowerId, this.ui.confirmingSell),
+    );
   }
 
   private saveResult({ outcome }: Extract<SimEvent, { type: 'gameEnded' }>) {

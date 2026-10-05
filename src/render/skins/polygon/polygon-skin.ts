@@ -22,6 +22,8 @@ const theme: SkinTheme = {
     buttonHover: palette.buttonHover,
     buttonDisabled: palette.buttonDisabled,
     selection: palette.selection,
+    range: palette.rangePreview,
+    danger: palette.danger,
     overlay: palette.overlay,
   },
   fonts: {

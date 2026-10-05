@@ -17,8 +17,12 @@ export interface SkinTheme {
     button: string;
     buttonHover: string;
     buttonDisabled: string;
-    /** Outline of the selected build button. */
+    /** Outline of the selected build button and of the selected tower. */
     selection: string;
+    /** Tower range circles drawn by the UI (selected tower, upgrade preview). */
+    range: string;
+    /** Warnings, such as an upgrade cost the gold doesn't cover. */
+    danger: string;
     overlay: string;
   };
   fonts: {

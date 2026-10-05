@@ -19,7 +19,7 @@ export interface HudModel {
 }
 
 export interface HudActions {
-  onSelectTower(kind: string): void;
+  onChooseBuildKind(kind: string): void;
   onStartNextWave(): void;
   onRestart(): void;
 }
@@ -28,19 +28,23 @@ export interface Hud {
   update(model: HudModel): void;
 }
 
-const BAR_HEIGHT = 40;
+/** Height of the top bar; world UI such as the tower panel stays below it. */
+export const BAR_HEIGHT = 40;
 const PAD = 12;
 /** Centre x of the first build button. */
 const TOWERS_X = 380;
 const TOWER_BUTTON_WIDTH = 110;
 
-interface Button {
+export interface Button {
   root: Phaser.GameObjects.Container;
   setEnabled(enabled: boolean): void;
   setSelected(selected: boolean): void;
+  /** Changes the label; `color` (a Theme token value) overrides the enabled/disabled colour. */
+  setLabel(label: string, color?: string): void;
 }
 
-function createButton(
+/** A rounded button drawn from Theme tokens; clicks are ignored while it is disabled. */
+export function createButton(
   scene: Phaser.Scene,
   theme: SkinTheme,
   label: string,
@@ -55,6 +59,7 @@ function createButton(
   let enabled = true;
   let hovered = false;
   let selected = false;
+  let labelColor: string | undefined;
 
   const draw = () => {
     const fill = !enabled
@@ -69,7 +74,7 @@ function createButton(
       bg.lineStyle(2, colorNumber(theme.colors.selection));
       bg.strokeRoundedRect(-width / 2, -height / 2, width, height, 6);
     }
-    text.setColor(enabled ? theme.colors.text : theme.colors.textMuted);
+    text.setColor(labelColor ?? (enabled ? theme.colors.text : theme.colors.textMuted));
   };
 
   root.setInteractive({ useHandCursor: true });
@@ -88,6 +93,12 @@ function createButton(
     setSelected(next) {
       if (next === selected) return;
       selected = next;
+      draw();
+    },
+    setLabel(label, color) {
+      if (label === text.text && color === labelColor) return;
+      text.setText(label);
+      labelColor = color;
       draw();
     },
   };
@@ -149,7 +160,7 @@ export function createHud(scene: Phaser.Scene, theme: SkinTheme, actions: HudAct
             theme,
             `${t.name} ${t.cost}`,
             { ...box, width: TOWER_BUTTON_WIDTH, height: 28 },
-            () => actions.onSelectTower(t.kind),
+            () => actions.onChooseBuildKind(t.kind),
           );
           towerButtons.set(t.kind, button);
           root.addAt(button.root, root.getIndex(overlay));
@@ -167,8 +178,8 @@ export function createHud(scene: Phaser.Scene, theme: SkinTheme, actions: HudAct
   };
 }
 
-/** Reads the HUD's model off a Simulation's current snapshot and the player's tower selection. */
-export function hudModelOf(sim: Simulation, selectedTower: string | null): HudModel {
+/** Reads the HUD's model off a Simulation's current snapshot and the kind chosen to build. */
+export function hudModelOf(sim: Simulation, buildKind: string | null): HudModel {
   return {
     lives: sim.state.lives,
     gold: sim.state.gold,
@@ -177,7 +188,7 @@ export function hudModelOf(sim: Simulation, selectedTower: string | null): HudMo
       name: def.name,
       cost: towerStats(sim.units, kind, 1)!.cost,
       affordable: sim.canAfford(kind),
-      selected: kind === selectedTower,
+      selected: kind === buildKind,
     })),
     waveNumber: sim.state.wave.index + 1,
     waveCount: sim.level.waves.length,
