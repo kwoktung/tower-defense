@@ -3,6 +3,9 @@
 A small browser tower defense game built with **Phaser 4** and **TypeScript**. Defend an orchard
 against waves of garden pests by building, upgrading and selling towers.
 
+**▶ Play it: [tower-defense.kwoktung.workers.dev](https://tower-defense.kwoktung.workers.dev/)**
+(fruit skin: [`?skin=fruit`](https://tower-defense.kwoktung.workers.dev/?skin=fruit))
+
 ![Fruit skin](docs/images/fruit-skin.png)
 
 The game is also a playground for a clean architecture. All rules live in a pure-TypeScript
