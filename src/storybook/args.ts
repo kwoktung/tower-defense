@@ -5,6 +5,10 @@ import { DEFAULT_SKIN_ID, skinIds } from '../render/skins';
 /** Kinds from the Unit catalog, so new content appears in the Controls without editing stories. */
 export const towerKinds = Object.keys(loadBundledUnits().towers);
 export const enemyKinds = Object.keys(loadBundledUnits().enemies);
+/** Highest Tower level of any kind, for level controls. */
+export const maxTowerLevel = Math.max(
+  ...Object.values(loadBundledUnits().towers).map((t) => t.levels.length),
+);
 
 /** Controls every story has. */
 export interface BaseStoryArgs {

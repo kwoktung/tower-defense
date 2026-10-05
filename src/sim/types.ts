@@ -82,6 +82,9 @@ export type SimEvent =
       level: number;
       slotId: string;
       refund: number;
+      /** Centre of the Slot it stood on. */
+      x: number;
+      y: number;
     }
   | { type: 'towerFired'; towerId: number; projectileId: number; targetId: number }
   | { type: 'projectileHit'; projectileId: number; x: number; y: number; splashRadius?: number }

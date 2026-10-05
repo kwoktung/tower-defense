@@ -68,7 +68,7 @@ MVP 里塔建好就定死了。整关总收入只有 344 金，而 Slot 永远�
   - `sellTower(towerId)`：成功时加金币、移除塔、Slot 变空，发出 `towerSold`；失败原因是游戏已结束或塔不存在。
 - 新 SimEvent：
   - `{ type: 'towerUpgraded'; id; kind; level }`
-  - `{ type: 'towerSold'; id; kind; level; slotId; refund }`
+  - `{ type: 'towerSold'; id; kind; level; slotId; refund; x; y }`（x、y 是 Slot 中心，供卖出特效定位）
 - 升级不重置冷却，也不清除目标。
 - 卖塔后，已经飞出的子弹照常飞行、命中。
 

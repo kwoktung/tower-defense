@@ -5,7 +5,7 @@ import { colorNumber, type MapView, type Skin, type SkinTheme, type SlotHover } 
 import { playEffect } from './effects';
 import { createEnemyView } from './enemy-view';
 import { createTowerView } from './tower-view';
-import { palette } from './palette';
+import { palette, uiFont } from './palette';
 import { createProjectileView } from './projectile-view';
 
 const theme: SkinTheme = {
@@ -27,7 +27,7 @@ const theme: SkinTheme = {
     overlay: palette.overlay,
   },
   fonts: {
-    ui: 'system-ui, sans-serif',
+    ui: uiFont,
   },
 };
 

@@ -64,7 +64,13 @@ export interface Skin {
   /** Queue any assets on the scene's loader. */
   preload(scene: Phaser.Scene): void;
   createMap(scene: Phaser.Scene, level: LevelDef): MapView;
-  /** One view per entity, chosen by kind. Unknown kinds must still render (a fallback shape). */
+  /**
+   * One view per tower, chosen by kind. The view handles its own Tower level: `sync` sees
+   * `tower.level` and updates the look when it changes (redraw, swap texture, animate); it is
+   * never recreated for a level change. A Skin must cover every (kind, level) in the Unit
+   * catalog: for one it can't draw it still renders a fallback, but reports console.error so
+   * story smoke tests catch the gap (ADR-0002).
+   */
   createTowerView(scene: Phaser.Scene, kind: string): EntityView<Tower>;
   createEnemyView(scene: Phaser.Scene, kind: string): EntityView<Enemy>;
   /** `kind` is the kind of the tower that fired it. */

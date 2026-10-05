@@ -57,6 +57,9 @@ export class WorldRenderer {
         case 'towerFired':
           this.towers.views.get(event.towerId)?.onEvent?.(event);
           break;
+        case 'towerUpgraded':
+          this.towers.views.get(event.id)?.onEvent?.(event);
+          break;
         case 'enemyDamaged':
           this.enemies.views.get(event.id)?.onEvent?.(event);
           break;

@@ -7,6 +7,12 @@ export const palette = {
   towerBasic: '#3b82f6',
   towerSplash: '#06b6d4',
   towerUnknown: '#1e40af',
+  /** Outline of level-2 towers. */
+  towerTrim: '#e2e8f0',
+  /** Outline of top-level towers and the upgrade burst. */
+  towerTrimTop: '#fbbf24',
+  /** Level dots on a tower's body. */
+  towerPip: '#0f141c',
   rangePreview: '#e2e8f0',
   enemyNormal: '#dc2626',
   enemyFast: '#fb7185',
@@ -27,6 +33,19 @@ export const palette = {
   danger: '#f87171',
   overlay: '#000000',
 } as const;
+
+/** The font of the HUD and of text Effects. */
+export const uiFont = 'system-ui, sans-serif';
+
+const TOWER_COLORS: Record<string, string> = {
+  basic: palette.towerBasic,
+  splash: palette.towerSplash,
+};
+
+/** The one place a tower kind gets its colour; unknown kinds share the fallback. */
+export function towerColor(kind: string): string {
+  return TOWER_COLORS[kind] ?? palette.towerUnknown;
+}
 
 const ENEMY_COLORS: Record<string, string> = {
   normal: palette.enemyNormal,

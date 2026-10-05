@@ -655,7 +655,16 @@ describe('selling towers', () => {
     expect(sim.state.towers).toEqual([]);
     expect(sim.isSlotFree(SLOT_3)).toBe(true);
     expect(ofType(sim.advance(1), 'towerSold')).toEqual([
-      { type: 'towerSold', id: tower.id, kind: 'basic', level: 1, slotId: SLOT_3, refund },
+      {
+        type: 'towerSold',
+        id: tower.id,
+        kind: 'basic',
+        level: 1,
+        slotId: SLOT_3,
+        refund,
+        x: 544,
+        y: 160,
+      },
     ]);
   });
 
