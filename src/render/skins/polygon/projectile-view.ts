@@ -15,7 +15,7 @@ export function createProjectileView(scene: Phaser.Scene): EntityView<Projectile
   const dot = scene.add.graphics().setDepth(15);
   fillPolygon(dot, OCTAGON, colorNumber(palette.projectile));
   return {
-    sync: (projectile) => void dot.setPosition(projectile.x, projectile.y),
+    sync: ({ position }) => void dot.setPosition(position.x, position.y),
     destroy: () => dot.destroy(),
   };
 }

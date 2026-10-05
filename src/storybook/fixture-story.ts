@@ -3,7 +3,7 @@ import { createFixedStep } from '../game-loop';
 import { createDebugOverlay } from '../render/debug-overlay';
 import { createHud, hudModelOf } from '../render/hud';
 import { WorldRenderer } from '../render/world-renderer';
-import { buildPath, cellCenter, poseAt, type Point } from '../sim/path';
+import { buildPath, poseAt, slotCenter, type Point } from '../sim/path';
 import { createSimulation } from '../sim/simulation';
 import type { SimEvent } from '../sim/types';
 import type { BaseStoryArgs } from './args';
@@ -104,8 +104,7 @@ function focusPoint({ level, initialState }: Fixture, focus: StoryFocus): Point 
     return enemy && poseAt(buildPath(level), enemy.pathT);
   }
   if ('projectileId' in focus) {
-    return initialState.projectiles.find((p) => p.id === focus.projectileId);
+    return initialState.projectiles.find((p) => p.id === focus.projectileId)?.position;
   }
-  const slot = level.slots.find((s) => s.id === focus.slotId);
-  return slot && cellCenter(slot, level.grid.tileSize);
+  return slotCenter(level, focus.slotId);
 }

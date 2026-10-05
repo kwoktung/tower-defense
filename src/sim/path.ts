@@ -51,6 +51,12 @@ export function poseAt(path: PathGeometry, t: number): PathPose {
   };
 }
 
+/** Centre of a Slot in world units, or undefined when the level has no Slot with that id. */
+export function slotCenter(level: LevelDef, slotId: string): Point | undefined {
+  const slot = level.slots.find((s) => s.id === slotId);
+  return slot && cellCenter(slot, level.grid.tileSize);
+}
+
 /** The Slot whose cell contains the world point, if any. */
 export function slotAt(level: LevelDef, x: number, y: number): string | null {
   const col = Math.floor(x / level.grid.tileSize);
