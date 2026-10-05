@@ -11,12 +11,33 @@ export function canStartNextWave(state: SimState, ctx: SimContext): boolean {
   );
 }
 
-export function startNextWave(state: SimState): SimEvent {
+/** Starts the next Wave (the caller has checked it may start); any Auto start countdown ends. */
+export function startNextWave(state: SimState, trigger: 'player' | 'auto'): SimEvent {
   state.wave = {
     index: state.wave.index + 1,
     spawning: { groupIndex: 0, spawnedInGroup: 0, cooldownTicks: 0 },
+    autoStartTicks: null,
   };
-  return { type: 'waveStarted', index: state.wave.index };
+  return { type: 'waveStarted', index: state.wave.index, trigger, bonus: 0 };
+}
+
+/**
+ * Auto start: once a Wave after the first is cleared, counts down the level's auto-start time
+ * and then starts the next Wave. The countdown ends with the game.
+ */
+export function autoStart(state: SimState, ctx: SimContext, events: SimEvent[]): void {
+  const { wave } = state;
+  if (state.outcome !== 'playing') {
+    wave.autoStartTicks = null;
+    return;
+  }
+  if (wave.autoStartTicks === null) {
+    if (wave.index >= 0 && canStartNextWave(state, ctx)) {
+      wave.autoStartTicks = secondsToTicks(ctx.level.autoStartSec);
+    }
+    return;
+  }
+  if (--wave.autoStartTicks <= 0) events.push(startNextWave(state, 'auto'));
 }
 
 /** Spawns at most one enemy per tick at the start of the Path, walking the Wave's spawn groups in order. */

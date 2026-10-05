@@ -61,6 +61,8 @@ export interface WaveProgress {
   index: number;
   /** Null once every enemy of the Wave has spawned (or before the first Wave). */
   spawning: SpawnCursor | null;
+  /** Ticks until the next Wave starts by itself (Auto start); null when no countdown runs. */
+  autoStartTicks: number | null;
 }
 
 /**
@@ -80,7 +82,14 @@ export interface SimState {
 }
 
 export type SimEvent =
-  | { type: 'waveStarted'; index: number }
+  | {
+      type: 'waveStarted';
+      index: number;
+      /** Who started it: the player, or the Auto start countdown. */
+      trigger: 'player' | 'auto';
+      /** Gold paid for starting it early (an Early call); 0 otherwise. */
+      bonus: number;
+    }
   | { type: 'towerPlaced'; id: number; kind: string; slotId: string }
   | { type: 'towerUpgraded'; id: number; kind: string; level: number }
   | {

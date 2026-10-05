@@ -19,7 +19,7 @@ import {
   type SellTowerResult,
   type UpgradeCheck,
 } from './systems/towers';
-import { canStartNextWave, spawnEnemies, startNextWave } from './systems/waves';
+import { autoStart, canStartNextWave, spawnEnemies, startNextWave } from './systems/waves';
 import type { SimEvent, SimState } from './types';
 
 export interface SimulationInput {
@@ -73,7 +73,7 @@ export function createInitialState(level: LevelDef, seed: number): SimState {
     rngState: seed >>> 0,
     gold: level.startGold,
     lives: level.startLives,
-    wave: { index: -1, spawning: null },
+    wave: { index: -1, spawning: null, autoStartTicks: null },
     outcome: 'playing',
     towers: [],
     enemies: [],
@@ -97,6 +97,7 @@ export function createSimulation(input: SimulationInput): Simulation {
     moveEnemies(state, ctx, events);
     spawnEnemies(state, ctx, events);
     resolveOutcome(state, ctx, events);
+    autoStart(state, ctx, events);
     state.tick++;
   };
 
@@ -115,7 +116,7 @@ export function createSimulation(input: SimulationInput): Simulation {
     canStartNextWave: () => canStartNextWave(state, ctx),
     startNextWave() {
       if (!canStartNextWave(state, ctx)) return false;
-      pending.push(startNextWave(state));
+      pending.push(startNextWave(state, 'player'));
       return true;
     },
     placeTower: (slotId, kind) => placeTower(state, ctx, slotId, kind, pending),
