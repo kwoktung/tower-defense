@@ -23,7 +23,7 @@ type Story = StoryObj<TowerArgs>;
 export const Idle: Story = {
   render: (args) =>
     mountFixtureStory(args, scenario().withTower(args.kind, SLOT).build(), {
-      focus: { slotId: SLOT },
+      camera: { focus: { slotId: SLOT } },
     }),
 };
 
@@ -33,10 +33,8 @@ export const SplashIdle: Story = { ...Idle, args: { kind: 'splash' } };
 export const HoverRangePreview: Story = {
   render: (args) =>
     mountFixtureStory(args, scenario().build(), {
-      selectedTower: args.kind,
-      hoverSlot: SLOT,
-      focus: { slotId: SLOT },
-      zoom: 2,
+      ui: { selectedTower: args.kind, hoverSlot: SLOT },
+      camera: { focus: { slotId: SLOT }, zoom: 2 },
     }),
 };
 
@@ -45,7 +43,9 @@ export const SplashHoverRangePreview: Story = { ...HoverRangePreview, args: { ki
 /** Every tower kind side by side. */
 export const AllKinds: Story = {
   render: (args) =>
-    mountFixtureStory(args, fixtures.oneOfEachTower(), { focus: { slotId: 'slot-2' }, zoom: 2 }),
+    mountFixtureStory(args, fixtures.oneOfEachTower(), {
+      camera: { focus: { slotId: 'slot-2' }, zoom: 2 },
+    }),
 };
 
 /** Mid-shot: the projectile is in flight, and the tower's fire pulse is frozen at its peak. */
@@ -53,8 +53,7 @@ export const Firing: Story = {
   render: (args) => {
     const fixture = fixtures.basicTowerFiring();
     return mountFixtureStory(args, fixture, {
-      focus: { slotId: 'slot-3' },
-      zoom: 2,
+      camera: { focus: { slotId: 'slot-3' }, zoom: 2 },
       effects: firedEvents(fixture),
     });
   },
@@ -64,8 +63,7 @@ export const SplashFiring: Story = {
   render: (args) => {
     const fixture = fixtures.splashHittingCluster();
     return mountFixtureStory(args, fixture, {
-      focus: { slotId: 'slot-3' },
-      zoom: 2,
+      camera: { focus: { slotId: 'slot-3' }, zoom: 2 },
       effects: firedEvents(fixture),
     });
   },

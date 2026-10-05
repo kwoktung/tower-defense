@@ -19,7 +19,9 @@ export const Basic: Story = {
     const fixture = fixtures.basicTowerFiring();
     const projectile = fixture.initialState.projectiles[0];
     if (!projectile) throw new Error('basicTowerFiring has no projectile in flight');
-    return mountFixtureStory(args, fixture, { focus: { projectileId: projectile.id }, zoom: 4 });
+    return mountFixtureStory(args, fixture, {
+      camera: { focus: { projectileId: projectile.id }, zoom: 4 },
+    });
   },
 };
 
@@ -34,8 +36,7 @@ export const SplashExplosion: Story = {
     // Show the explosion where the projectile is headed, without the projectile itself.
     fixture.initialState.projectiles = [];
     return mountFixtureStory(args, fixture, {
-      focus: { enemyId: leader.id },
-      zoom: 3,
+      camera: { focus: { enemyId: leader.id }, zoom: 3 },
       effects: [
         {
           type: 'projectileHit',

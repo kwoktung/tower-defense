@@ -1,16 +1,14 @@
 import * as Phaser from 'phaser';
 import type { LevelDef, UnitCatalog } from '../content/schemas';
-import { createFixedStep } from '../game-loop';
-import { createDebugOverlay, type DebugOverlay } from '../render/debug-overlay';
 import type { MapView, Skin } from '../render/skin';
-import { WorldRenderer } from '../render/world-renderer';
 import { slotAt } from '../sim/path';
-import { createSimulation, type Simulation } from '../sim/simulation';
+import { createSimulation } from '../sim/simulation';
 import type { SimEvent } from '../sim/types';
 import type { ProgressStore } from '../services/types';
 import type { HudSceneData } from './HudScene';
 import { SceneKeys } from './keys';
-import type { UiState } from './ui-state';
+import { defaultSelectedTower, slotHoverFor, type UiState } from './ui-state';
+import { createWorldRunner, type WorldRunner } from './world-runner';
 
 export interface GameSceneData {
   level: LevelDef;
@@ -23,12 +21,9 @@ export interface GameSceneData {
 
 /** Drives the Simulation at a fixed step, renders it, and launches the HUD above itself. */
 export class GameScene extends Phaser.Scene {
-  private sim!: Simulation;
+  private runner!: WorldRunner;
   private mapView!: MapView;
-  private world!: WorldRenderer;
-  private debugOverlay!: DebugOverlay;
   private progress!: ProgressStore;
-  private fixedStep = createFixedStep();
 
   constructor() {
     super(SceneKeys.Game);
@@ -37,40 +32,35 @@ export class GameScene extends Phaser.Scene {
   create(data: GameSceneData) {
     const { level, units, progress, skin, debug, seed = Date.now() } = data;
     this.progress = progress;
-    this.sim = createSimulation({ level, units, seed });
-    this.fixedStep = createFixedStep();
+    const sim = createSimulation({ level, units, seed });
     this.mapView = skin.createMap(this, level);
-    this.world = new WorldRenderer(this, skin, level);
-    this.debugOverlay = createDebugOverlay(this, level, units, debug);
-    this.world.render(this.sim.state);
+    this.runner = createWorldRunner(this, { sim, skin, debug });
+    this.runner.render();
 
-    const ui: UiState = { selectedTower: Object.keys(units.towers)[0] ?? null };
-    /** The empty Slot under the pointer, if any. Occupied Slots don't react. */
-    const emptySlotAt = (pointer: Phaser.Input.Pointer) => {
-      const slotId = slotAt(level, pointer.worldX, pointer.worldY);
-      return slotId && this.sim.isSlotFree(slotId) ? slotId : null;
-    };
+    const ui: UiState = { selectedTower: defaultSelectedTower(units) };
+    const slotUnder = (pointer: Phaser.Input.Pointer) =>
+      slotAt(level, pointer.worldX, pointer.worldY);
     const updateHover = (pointer: Phaser.Input.Pointer) => {
-      const slotId = emptySlotAt(pointer);
-      const def = ui.selectedTower ? units.towers[ui.selectedTower] : undefined;
-      this.mapView.setHover(slotId ? { slotId, rangePreview: def?.range ?? null } : null);
+      this.mapView.setHover(slotHoverFor(sim, slotUnder(pointer), ui.selectedTower));
     };
     this.input.on(Phaser.Input.Events.POINTER_MOVE, updateHover);
     this.input.on(Phaser.Input.Events.POINTER_DOWN, (pointer: Phaser.Input.Pointer) => {
-      const slotId = emptySlotAt(pointer);
-      if (slotId && ui.selectedTower) this.sim.placeTower(slotId, ui.selectedTower);
+      const slotId = slotUnder(pointer);
+      if (slotId && ui.selectedTower) sim.placeTower(slotId, ui.selectedTower);
       updateHover(pointer);
     });
     this.input.keyboard?.on('keydown-D', () => {
-      this.debugOverlay.setVisible(!this.debugOverlay.visible);
+      const overlay = this.runner.debugOverlay;
+      overlay.setVisible(!overlay.visible);
     });
 
     const hud: HudSceneData = {
-      sim: this.sim,
+      sim,
       ui,
       theme: skin.theme,
       onRestart: () => {
-        const next: GameSceneData = { ...data, debug: this.debugOverlay.visible, seed: Date.now() };
+        const debugVisible = this.runner.debugOverlay.visible;
+        const next: GameSceneData = { ...data, debug: debugVisible, seed: Date.now() };
         this.scene.restart(next);
       },
     };
@@ -80,15 +70,17 @@ export class GameScene extends Phaser.Scene {
   }
 
   override update(_time: number, deltaMs: number) {
-    const events = this.sim.advance(this.fixedStep.consume(deltaMs));
-    this.world.render(this.sim.state, events);
-    this.debugOverlay.sync(this.sim.state);
-    for (const event of events) if (event.type === 'gameEnded') this.saveResult(event);
+    for (const event of this.runner.tick(deltaMs)) {
+      if (event.type === 'gameEnded') this.saveResult(event);
+    }
   }
 
   private saveResult({ outcome }: Extract<SimEvent, { type: 'gameEnded' }>) {
     this.progress
-      .save(this.sim.level.id, { bestOutcome: outcome, bestLivesLeft: this.sim.state.lives })
+      .save(this.runner.sim.level.id, {
+        bestOutcome: outcome,
+        bestLivesLeft: this.runner.sim.state.lives,
+      })
       .catch((error: unknown) => console.warn('Could not save progress', error));
   }
 }

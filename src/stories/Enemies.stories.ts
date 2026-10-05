@@ -31,7 +31,7 @@ const meta: Meta<EnemyArgs> = {
       .build();
     const id = fixture.initialState.enemies[0]!.id;
     return mountFixtureStory(args, fixture, {
-      focus: { enemyId: id },
+      camera: { focus: { enemyId: id } },
       effects: args.hit ? [{ type: 'enemyDamaged', id, amount: 0 }] : [],
     });
   },
@@ -79,7 +79,7 @@ const killedStory = (kind: string, effectKind = kind): Story => ({
   render: (args) => {
     const { fixture, killed } = killMoment(kind);
     return mountFixtureStory(args, fixture, {
-      focus: { slotId: KILL_SLOT },
+      camera: { focus: { slotId: KILL_SLOT } },
       effects: [{ ...killed, kind: effectKind }],
     });
   },

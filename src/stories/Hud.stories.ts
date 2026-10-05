@@ -11,7 +11,7 @@ const meta: Meta<HudArgs> = {
   title: 'HUD',
   args: baseArgs,
   argTypes: { ...baseArgTypes, fixture: { control: false } },
-  render: (args) => mountFixtureStory(args, fixtures[args.fixture](), { hud: true }),
+  render: (args) => mountFixtureStory(args, fixtures[args.fixture](), { ui: { hud: true } }),
 };
 export default meta;
 

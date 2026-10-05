@@ -27,10 +27,12 @@ const meta: Meta<ScenarioArgs> = {
   },
   render: (args) =>
     mountFixtureStory(args, fixtures[args.fixture](), {
-      hud: true,
-      running: args.running,
-      speed: Number(args.speed),
-      advanceTicks: Number(args.advanceTicks),
+      ui: { hud: true },
+      playback: {
+        running: args.running,
+        speed: Number(args.speed),
+        advanceTicks: Number(args.advanceTicks),
+      },
     }),
 };
 export default meta;

@@ -20,8 +20,7 @@ const meta: Meta<MapArgs> = {
   // No tower selected, so hovering a Slot only highlights it (no range preview).
   render: (args) =>
     mountFixtureStory(args, fixtures.emptyMap(), {
-      selectedTower: null,
-      ...(args.hoverSlot ? { hoverSlot: args.hoverSlot } : {}),
+      ui: { selectedTower: null, ...(args.hoverSlot ? { hoverSlot: args.hoverSlot } : {}) },
     }),
 };
 export default meta;
