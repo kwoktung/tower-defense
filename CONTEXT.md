@@ -38,10 +38,11 @@ Use these terms in code, tickets, commits and reviews. Avoid the listed synonyms
 - **MapView** — The visual for the background, Path and Slots.
 - **WorldRenderer** — Diffs each snapshot by entity id to create, sync and destroy EntityViews. It forwards SimEvents about a living entity (tower fired, enemy damaged) to that entity's view, and hands every other SimEvent to the Skin as an Effect.
 - **Theme token** — A named colour or font provided by the Skin; the HUD reads only these and the Skin's HUD icons.
-- **HUD** — The Phaser-drawn overlay scene showing gold, lives, wave, the build / next-wave buttons and the end-of-game overlay. The Game scene launches it on every start, including restarts. Numbers are shown as Skin-drawn icons plus values; all text it shows comes from **Strings**.
+- **HUD** — The Phaser-drawn overlay scene showing gold, lives, wave, the next-wave button, the Build menu, the tower panel and the end-of-game overlay. The Game scene launches it on every start, including restarts. Numbers are shown as Skin-drawn icons plus values; all text it shows comes from **Strings**.
 - **Strings** — `src/render/strings.ts`, the only source of display text (tower names included; the Unit catalog holds none). English only for now. _Avoid:_ copy, labels file.
 - **Effect** — A one-off visual for a SimEvent (fire pulse, hit flash, kill ring, splash ring). Effects never change the Simulation.
-- **UI state** — Player choices that are not game state, such as the selected tower kind; shared by the Game and HUD scenes, never stored in SimState.
+- **UI state** — Player choices that are not game state: the open Build menu and its previewed kind, the selected tower, a pending sell confirmation. Shared by the Game and HUD scenes, never stored in SimState.
+- **Build menu** — The ring of tower options that opens around a free Slot when it is clicked, each showing the tower and its cost. The first press on an option previews its range; a second press on the same option builds it. Unaffordable options can be previewed but not built. _Avoid:_ build wheel, radial menu (radial only describes its shape).
 - **Debug overlay** — A skin-independent layer showing ranges, ids, hp, path waypoints and Slot coordinates. Toggled with `D` in game or the `debug` control in Storybook.
 
 ## Visual workflow

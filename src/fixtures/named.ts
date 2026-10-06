@@ -36,6 +36,9 @@ export const fixtures = {
   /** Not enough gold for any tower, with one tower already built. */
   lowGold: (): Fixture => scenario().withTower('basic', 'slot-2').withGold(30).build(),
 
+  /** 55 gold: enough for a basic tower (50) but not a splash (70) or slow (60) one. */
+  buildMenuLowGold: (): Fixture => scenario().withGold(55).build(),
+
   /** A basic tower shooting at a line of enemies, its first projectile in flight. */
   basicTowerFiring: (): Fixture =>
     scenario()

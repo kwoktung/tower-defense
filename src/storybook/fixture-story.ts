@@ -1,7 +1,13 @@
 import type { Fixture } from '../fixtures/scenario';
+import { buildMenuModelOf, createBuildMenu, createBuildPreview } from '../render/build-menu';
 import { createHud, hudModelOf } from '../render/hud';
 import { createTowerPanel, createTowerSelection, towerPanelModelOf } from '../render/tower-panel';
-import { createUiState, slotHoverFor } from '../scenes/ui-state';
+import {
+  clickBuildOption,
+  createUiState,
+  hoverBuildOption,
+  slotHoverFor,
+} from '../scenes/ui-state';
 import { createWorldRunner } from '../scenes/world-runner';
 import { buildPath, poseAt, slotCenter, type Point } from '../sim/path';
 import { createSimulation } from '../sim/simulation';
@@ -15,8 +21,8 @@ export type StoryFocus = { enemyId: number } | { slotId: string } | { projectile
 export interface StoryUi {
   /** Draw the HUD over the world. */
   hud?: boolean;
-  /** Tower kind chosen on the HUD and used for the hover range preview. Default: the first kind. */
-  buildKind?: string | null;
+  /** Show the Build menu open on this Slot, optionally previewing a kind's range. */
+  buildMenu?: { slotId: string; previewKind?: string };
   /** Placed tower whose panel and range circles are shown. */
   selectedTowerId?: number;
   /** Show the panel's sell button waiting for its confirming second press. */
@@ -64,8 +70,14 @@ export function mountFixtureStory(
 ): HTMLElement {
   const { hud = false, hoverSlot } = ui;
   const uiState = {
-    ...createUiState(fixture.units),
-    ...(ui.buildKind !== undefined && { buildKind: ui.buildKind }),
+    ...createUiState(),
+    buildMenu: ui.buildMenu
+      ? {
+          slotId: ui.buildMenu.slotId,
+          previewKind: ui.buildMenu.previewKind ?? null,
+          hoverKind: null,
+        }
+      : null,
     selectedTowerId: ui.selectedTowerId ?? null,
     confirmingSell: ui.confirmingSell ?? false,
   };
@@ -78,13 +90,12 @@ export function mountFixtureStory(
       const sim = createSimulation(fixture);
       if (advanceTicks > 0) sim.advance(advanceTicks);
 
-      skin.createMap(scene, fixture.level).setHover(slotHoverFor(sim, hoverSlot ?? null, uiState));
+      skin.createMap(scene, fixture.level).setHover(slotHoverFor(sim, hoverSlot ?? null));
       const runner = createWorldRunner(scene, { sim, skin, debug });
       runner.render(effects);
 
       const hudView = hud
         ? createHud(scene, skin, {
-            onChooseBuildKind: () => {},
             onStartNextWave: () => sim.startNextWave(),
             onRestart: () => {},
           })
@@ -94,8 +105,16 @@ export function mountFixtureStory(
         onUpgrade: (towerId) => sim.upgradeTower(towerId),
         onSell: (towerId) => sim.sellTower(towerId),
       });
+      const buildPreview = createBuildPreview(scene, skin.theme, fixture.level);
+      const buildMenu = createBuildMenu(scene, skin, fixture.level, {
+        onOption: (kind) => clickBuildOption(sim, uiState, kind),
+        onHover: (kind) => hoverBuildOption(uiState, kind),
+      });
       const drawUi = () => {
-        hudView?.update(hudModelOf(sim, uiState.buildKind));
+        hudView?.update(hudModelOf(sim));
+        const menu = buildMenuModelOf(sim, uiState.buildMenu);
+        buildPreview.update(menu);
+        buildMenu.update(menu);
         const model = towerPanelModelOf(sim, uiState.selectedTowerId, uiState.confirmingSell);
         selection.update(model);
         panel.update(model);

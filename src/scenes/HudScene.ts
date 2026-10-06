@@ -1,11 +1,12 @@
 import * as Phaser from 'phaser';
+import { buildMenuModelOf, createBuildMenu, type BuildMenu } from '../render/build-menu';
 import { createHud, hudModelOf, type Hud } from '../render/hud';
 import type { Skin } from '../render/skin';
 import { createTowerPanel, towerPanelModelOf, type TowerPanel } from '../render/tower-panel';
 import type { Simulation } from '../sim/simulation';
 import { SceneKeys } from './keys';
 import type { SimEvent } from '../sim/types';
-import { chooseBuildKind, selectTower, type UiState } from './ui-state';
+import { clickBuildOption, hoverBuildOption, selectTower, type UiState } from './ui-state';
 
 export interface HudSceneData {
   sim: Simulation;
@@ -23,12 +24,13 @@ export const SIM_EVENTS = 'simEvents';
 const SELL_CONFIRM_MS = 3000;
 
 /**
- * Runs above the Game scene and redraws the HUD and the selected tower's panel from the
- * Simulation's snapshot every frame.
+ * Runs above the Game scene and redraws the HUD, the Build menu and the selected tower's panel
+ * from the Simulation's snapshot every frame.
  */
 export class HudScene extends Phaser.Scene {
   private hud!: Hud;
   private panel!: TowerPanel;
+  private buildMenu!: BuildMenu;
   private sim!: Simulation;
   private ui!: UiState;
   /** Counts sell-button arms, so an old timer can't disarm a newer press. */
@@ -42,7 +44,6 @@ export class HudScene extends Phaser.Scene {
     this.sim = sim;
     this.ui = ui;
     this.hud = createHud(this, skin, {
-      onChooseBuildKind: (kind) => chooseBuildKind(ui, kind),
       onStartNextWave: () => sim.startNextWave(),
       onRestart,
     });
@@ -52,6 +53,10 @@ export class HudScene extends Phaser.Scene {
         ui.confirmingSell = false;
       },
       onSell: (towerId) => this.sell(towerId),
+    });
+    this.buildMenu = createBuildMenu(this, skin, sim.level, {
+      onOption: (kind) => clickBuildOption(sim, ui, kind),
+      onHover: (kind) => hoverBuildOption(ui, kind),
     });
     simEvents.on(SIM_EVENTS, (events: SimEvent[]) => this.hud.playEvents(events));
     this.redraw();
@@ -78,7 +83,8 @@ export class HudScene extends Phaser.Scene {
 
   private redraw() {
     const { sim, ui } = this;
-    this.hud.update(hudModelOf(sim, ui.buildKind));
+    this.hud.update(hudModelOf(sim));
+    this.buildMenu.update(buildMenuModelOf(sim, ui.buildMenu));
     this.panel.update(towerPanelModelOf(sim, ui.selectedTowerId, ui.confirmingSell));
   }
 }

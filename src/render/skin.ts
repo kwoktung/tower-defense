@@ -34,11 +34,9 @@ export interface SkinTheme {
 export const ICON_NAMES = ['heart', 'coin', 'flag', 'play', 'retry', 'upgrade'] as const;
 export type IconName = (typeof ICON_NAMES)[number];
 
-/** What the pointer is over: an empty Slot, optionally previewing the selected tower's range. */
+/** What the pointer is over: a free Slot, highlighted as clickable. */
 export interface SlotHover {
   slotId: string;
-  /** Range of the tower that would be built here, in world units; null for no preview. */
-  rangePreview: number | null;
 }
 
 export interface MapView {

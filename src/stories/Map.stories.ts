@@ -17,10 +17,10 @@ const meta: Meta<MapArgs> = {
       options: [null, ...fixtures.emptyMap().level.slots.map((s) => s.id)],
     },
   },
-  // No tower selected, so hovering a Slot only highlights it (no range preview).
+  // Hovering a free Slot highlights it as clickable.
   render: (args) =>
     mountFixtureStory(args, fixtures.emptyMap(), {
-      ui: { buildKind: null, ...(args.hoverSlot ? { hoverSlot: args.hoverSlot } : {}) },
+      ui: args.hoverSlot ? { hoverSlot: args.hoverSlot } : {},
     }),
 };
 export default meta;

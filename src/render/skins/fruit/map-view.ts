@@ -75,12 +75,6 @@ export function createFruitMap(scene: Phaser.Scene, level: LevelDef): MapView {
       hoverMark.clear();
       const c = hover ? slotCenter(level, hover.slotId) : undefined;
       if (!hover || !c) return;
-      if (hover.rangePreview) {
-        hoverMark.fillStyle(colorNumber(palette.rangePreview), 0.14);
-        hoverMark.fillCircle(c.x, c.y, hover.rangePreview);
-        hoverMark.lineStyle(1.5, colorNumber(palette.rangePreview), 0.7);
-        hoverMark.strokeCircle(c.x, c.y, hover.rangePreview);
-      }
       hoverMark.lineStyle(3, colorNumber(palette.slotHover), 0.95);
       hoverMark.strokeRoundedRect(c.x - size / 2, c.y - size / 2, size, size, 8);
     },

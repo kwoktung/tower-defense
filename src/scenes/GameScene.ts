@@ -1,5 +1,6 @@
 import * as Phaser from 'phaser';
 import type { LevelDef, UnitCatalog } from '../content/schemas';
+import { buildMenuModelOf, createBuildPreview, type BuildPreviewView } from '../render/build-menu';
 import type { MapView, Skin } from '../render/skin';
 import {
   createTowerSelection,
@@ -38,6 +39,7 @@ export class GameScene extends Phaser.Scene {
   private progress!: ProgressStore;
   private ui!: UiState;
   private selection!: TowerSelectionView;
+  private buildPreview!: BuildPreviewView;
   /** A fresh emitter per game, so a restarted HUD never hears the old Simulation. */
   private simEvents!: Phaser.Events.EventEmitter;
 
@@ -53,13 +55,14 @@ export class GameScene extends Phaser.Scene {
     this.runner = createWorldRunner(this, { sim, skin, debug });
     this.runner.render();
 
-    const ui = createUiState(units);
+    const ui = createUiState();
     this.ui = ui;
     this.selection = createTowerSelection(this, skin.theme, level);
+    this.buildPreview = createBuildPreview(this, skin.theme, level);
     const slotUnder = (pointer: Phaser.Input.Pointer) =>
       slotAt(level, pointer.worldX, pointer.worldY);
     const updateHover = (pointer: Phaser.Input.Pointer) => {
-      this.mapView.setHover(slotHoverFor(sim, slotUnder(pointer), ui));
+      this.mapView.setHover(slotHoverFor(sim, slotUnder(pointer)));
     };
     this.input.on(Phaser.Input.Events.POINTER_MOVE, updateHover);
     this.input.on(Phaser.Input.Events.POINTER_DOWN, (pointer: Phaser.Input.Pointer) => {
@@ -99,6 +102,7 @@ export class GameScene extends Phaser.Scene {
     this.selection.update(
       towerPanelModelOf(this.runner.sim, this.ui.selectedTowerId, this.ui.confirmingSell),
     );
+    this.buildPreview.update(buildMenuModelOf(this.runner.sim, this.ui.buildMenu));
   }
 
   private saveResult({ outcome }: Extract<SimEvent, { type: 'gameEnded' }>) {

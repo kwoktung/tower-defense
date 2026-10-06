@@ -77,17 +77,6 @@ export const Sold: Story = {
   },
 };
 
-/** The pointer over an empty Slot previews the selected tower's range before building. */
-export const HoverRangePreview: Story = {
-  render: (args) =>
-    mountFixtureStory(args, scenario().build(), {
-      ui: { buildKind: args.kind, hoverSlot: SLOT },
-      camera: { focus: { slotId: SLOT }, zoom: 2 },
-    }),
-};
-
-export const SplashHoverRangePreview: Story = { ...HoverRangePreview, args: { kind: 'splash' } };
-
 /** Every tower kind side by side. */
 export const AllKinds: Story = {
   render: (args) =>

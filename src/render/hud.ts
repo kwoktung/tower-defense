@@ -1,11 +1,10 @@
 import type * as Phaser from 'phaser';
-import { towerStats } from '../content/schemas';
 import { GAME_HEIGHT, GAME_WIDTH } from '../game-config';
 import type { Simulation } from '../sim/simulation';
 import { TICK_RATE } from '../sim/time';
 import type { Outcome, SimEvent } from '../sim/types';
 import { colorNumber, type IconName, type Skin } from './skin';
-import { strings, towerName } from './strings';
+import { strings } from './strings';
 
 /** What the HUD needs from the Skin: its Theme tokens and its icons. */
 export type UiSkin = Pick<Skin, 'theme' | 'createIcon'>;
@@ -17,8 +16,6 @@ export type Label = string | readonly (string | { icon: IconName })[];
 export interface HudModel {
   lives: number;
   gold: number;
-  /** One build button per tower kind, in catalog order. */
-  towers: { kind: string; cost: number; affordable: boolean; selected: boolean }[];
   /** 1-based number of the current Wave; 0 before the first Wave. */
   waveNumber: number;
   waveCount: number;
@@ -31,7 +28,6 @@ export interface HudModel {
 }
 
 export interface HudActions {
-  onChooseBuildKind(kind: string): void;
   onStartNextWave(): void;
   onRestart(): void;
 }
@@ -45,9 +41,6 @@ export interface Hud {
 /** Height of the top bar; world UI such as the tower panel stays below it. */
 export const BAR_HEIGHT = 40;
 const PAD = 12;
-/** Centre x of the first build button. */
-const TOWERS_X = 380;
-const TOWER_BUTTON_WIDTH = 110;
 /** Size of the lives, wave and gold icons. */
 const STAT_ICON = 18;
 /** How long the Early call bonus floats beside the gold. */
@@ -204,8 +197,6 @@ export function createHud(scene: Phaser.Scene, skin: UiSkin, actions: HudActions
   const lives = stat('heart', PAD);
   const wave = stat('flag', PAD + 80);
   const gold = stat('coin', PAD + 180, theme.colors.gold);
-  /** Build buttons are created on first update, once the tower kinds are known. */
-  const towerButtons = new Map<string, Button>();
   const nextWave = createButton(
     scene,
     skin,
@@ -234,23 +225,6 @@ export function createHud(scene: Phaser.Scene, skin: UiSkin, actions: HudActions
 
   return {
     update(model) {
-      model.towers.forEach((t, i) => {
-        let button = towerButtons.get(t.kind);
-        if (!button) {
-          const box = { x: TOWERS_X + i * (TOWER_BUTTON_WIDTH + 8), y: BAR_HEIGHT / 2 };
-          button = createButton(
-            scene,
-            skin,
-            [towerName(t.kind), { icon: 'coin' }, String(t.cost)],
-            { ...box, width: TOWER_BUTTON_WIDTH, height: 28 },
-            () => actions.onChooseBuildKind(t.kind),
-          );
-          towerButtons.set(t.kind, button);
-          root.addAt(button.root, root.getIndex(overlay));
-        }
-        button.setEnabled(t.affordable);
-        button.setSelected(t.selected);
-      });
       lives.setText(String(model.lives));
       gold.setText(String(model.gold));
       wave.setText(strings.waveOf(model.waveNumber, model.waveCount));
@@ -301,17 +275,11 @@ export function nextWaveButton(sim: Simulation): HudModel['nextWave'] {
   return { label: [play, `+${sim.nextWaveBonus()}`, { icon: 'coin' }], enabled, bonus: true };
 }
 
-/** Reads the HUD's model off a Simulation's current snapshot and the kind chosen to build. */
-export function hudModelOf(sim: Simulation, buildKind: string | null): HudModel {
+/** Reads the HUD's model off a Simulation's current snapshot. */
+export function hudModelOf(sim: Simulation): HudModel {
   return {
     lives: sim.state.lives,
     gold: sim.state.gold,
-    towers: Object.keys(sim.units.towers).map((kind) => ({
-      kind,
-      cost: towerStats(sim.units, kind, 1)!.cost,
-      affordable: sim.canAfford(kind),
-      selected: kind === buildKind,
-    })),
     waveNumber: sim.state.wave.index + 1,
     waveCount: sim.level.waves.length,
     nextWave: nextWaveButton(sim),
