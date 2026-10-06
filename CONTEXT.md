@@ -42,7 +42,7 @@ Use these terms in code, tickets, commits and reviews. Avoid the listed synonyms
 - **Strings** — `src/render/strings.ts`, the only source of display text (tower names included; the Unit catalog holds none). English only for now. _Avoid:_ copy, labels file.
 - **Effect** — A one-off visual for a SimEvent (fire pulse, hit flash, kill ring, splash ring). Effects never change the Simulation.
 - **UI state** — Player choices that are not game state: the open Build menu and its previewed kind, the selected tower, a pending sell confirmation. Shared by the Game and HUD scenes, never stored in SimState.
-- **Build menu** — The ring of tower options that opens around a free Slot when it is clicked, each showing the tower and its cost. The first press on an option previews its range; a second press on the same option builds it. Unaffordable options can be previewed but not built. _Avoid:_ build wheel, radial menu (radial only describes its shape).
+- **Build menu** — The rows of tower options (up to three per row) that open above a free Slot (below it, if there is no room) when it is clicked, each showing the tower and its cost. The first press on an option previews its range; a second press on the same option builds it. Unaffordable options can be previewed but not built. _Avoid:_ build bar, tower picker.
 - **Debug overlay** — A skin-independent layer showing ranges, ids, hp, path waypoints and Slot coordinates. Toggled with `D` in game or the `debug` control in Storybook.
 
 ## Visual workflow

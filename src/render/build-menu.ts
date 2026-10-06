@@ -1,6 +1,6 @@
 import * as Phaser from 'phaser';
 import { towerStats, type LevelDef } from '../content/schemas';
-import { GAME_HEIGHT, GAME_WIDTH } from '../game-config';
+import { GAME_WIDTH } from '../game-config';
 import { buildPath, slotCenter, type Point } from '../sim/path';
 import type { Simulation } from '../sim/simulation';
 import { BAR_HEIGHT, createLabel, type UiSkin } from './hud';
@@ -49,43 +49,53 @@ export function buildMenuModelOf(
   };
 }
 
-/** Distance from the Slot's centre to each option's centre. */
-const RING_RADIUS = 62;
 const OPTION_RADIUS = 25;
+/** Gap between neighbouring options in the row. */
+const OPTION_GAP = 8;
 /** The cost badge hangs over the bottom of its option. */
 const BADGE_Y = OPTION_RADIUS - 2;
 const BADGE_HEIGHT = 18;
+/** Gap between the Slot's edge and the row (its options or their cost badges). */
+const ROW_GAP = 6;
 /** A tower thumbnail shows its tile at this size. */
 const THUMB_TILE = 44;
 /** Space kept between the menu and the screen edges (and the top bar). */
 const MARGIN = 6;
 
+/** Most options in one row; more wrap onto further rows. */
+const ROW_SIZE = 3;
+/** Distance between the centres of neighbouring rows: an option, its badge and a gap. */
+const ROW_STEP = OPTION_RADIUS + BADGE_Y + BADGE_HEIGHT / 2 + OPTION_GAP;
+
 /**
- * Option centres for a menu around `slot`: evenly spaced on a ring, the first at the top, then
- * the whole ring pushed inward so every option and its cost badge stays on screen.
+ * Option centres for a menu on `slot`: rows of up to ROW_SIZE options in reading order, each
+ * centred on the Slot, the block above the Slot, or below it when there is no room above (under
+ * the top bar). The block is pushed sideways, as a whole, to stay on screen.
  */
-export function buildMenuLayout(slot: Point, count: number): Point[] {
-  const points = Array.from({ length: count }, (_, i) => {
-    const a = -Math.PI / 2 + (i / count) * Math.PI * 2;
-    return { x: slot.x + Math.cos(a) * RING_RADIUS, y: slot.y + Math.sin(a) * RING_RADIUS };
+export function buildMenuLayout(slot: Point, count: number, tileSize: number): Point[] {
+  const step = OPTION_RADIUS * 2 + OPTION_GAP;
+  const rows = Math.ceil(count / ROW_SIZE);
+  const half = tileSize / 2;
+  // Centre of the row nearest the Slot, above or below it.
+  const nearestAbove = slot.y - half - ROW_GAP - (BADGE_Y + BADGE_HEIGHT / 2);
+  const topAbove = nearestAbove - (rows - 1) * ROW_STEP;
+  const top =
+    topAbove - OPTION_RADIUS >= BAR_HEIGHT + MARGIN
+      ? topAbove
+      : slot.y + half + ROW_GAP + OPTION_RADIUS;
+  const widest = Math.min(count, ROW_SIZE) * step - OPTION_GAP;
+  const left = slot.x - widest / 2;
+  const dx =
+    Math.min(Math.max(left, MARGIN), Math.max(GAME_WIDTH - MARGIN - widest, MARGIN)) - left;
+  return Array.from({ length: count }, (_, i) => {
+    const row = Math.floor(i / ROW_SIZE);
+    const inRow = Math.min(ROW_SIZE, count - row * ROW_SIZE);
+    const rowLeft = slot.x - (inRow * step - OPTION_GAP) / 2;
+    return {
+      x: rowLeft + OPTION_RADIUS + (i % ROW_SIZE) * step + dx,
+      y: top + row * ROW_STEP,
+    };
   });
-  const xs = points.map((p) => p.x);
-  const ys = points.map((p) => p.y);
-  const shift = (low: number, high: number, min: number, max: number) =>
-    low < min ? min - low : high > max ? max - high : 0;
-  const dx = shift(
-    Math.min(...xs) - OPTION_RADIUS,
-    Math.max(...xs) + OPTION_RADIUS,
-    MARGIN,
-    GAME_WIDTH - MARGIN,
-  );
-  const dy = shift(
-    Math.min(...ys) - OPTION_RADIUS,
-    Math.max(...ys) + BADGE_Y + BADGE_HEIGHT / 2,
-    BAR_HEIGHT + MARGIN,
-    GAME_HEIGHT - MARGIN,
-  );
-  return points.map((p) => ({ x: p.x + dx, y: p.y + dy }));
 }
 
 /** Draws the Build menu's Slot outline and previewed range, in world space below towers. */
@@ -172,7 +182,7 @@ interface OptionView {
 }
 
 /**
- * The ring of tower options around the Slot the Build menu is open on: each a thumbnail of the
+ * The row of tower options beside the Slot the Build menu is open on: each a thumbnail of the
  * tower with its cost. Unaffordable options are greyed with their cost in the danger colour; the
  * previewed one is outlined.
  */
@@ -239,7 +249,7 @@ export function createBuildMenu(
       const c = model && slotCenter(level, model.slotId);
       root.setVisible(Boolean(model && c));
       if (!model || !c) return;
-      const layout = buildMenuLayout(c, model.options.length);
+      const layout = buildMenuLayout(c, model.options.length, level.grid.tileSize);
       model.options.forEach((option, i) => {
         let view = views.get(option.kind);
         if (!view) {

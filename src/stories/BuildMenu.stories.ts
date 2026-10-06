@@ -50,9 +50,12 @@ export const NotEnoughGold: Story = {
   args: { fixture: 'buildMenuLowGold', previewKind: 'splash' },
 };
 /**
- * The bottom row: the ring still fits. (No level-1 Slot is close enough to an edge for the ring
- * to be pushed inward; `buildMenuLayout` does that for levels that have one.)
+ * The top row of Slots, still with room above for the menu. (No level-1 Slot is close enough to
+ * the top bar or a side for `buildMenuLayout` to open the row below or push it sideways.)
  */
+export const TopRow: Story = { args: { slotId: 'slot-2' } };
+/** The rightmost Slot: the row still fits centred. */
+export const RightEdge: Story = { args: { slotId: 'slot-12' } };
 export const BottomRow: Story = { args: { slotId: 'slot-9' } };
 export const OpenFruit: Story = { args: { skin: 'fruit', previewKind: 'slow' } };
 export const NotEnoughGoldFruit: Story = {
