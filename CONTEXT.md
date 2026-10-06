@@ -33,7 +33,7 @@ Use these terms in code, tickets, commits and reviews. Avoid the listed synonyms
 
 ## Rendering
 
-- **Skin** — A pluggable implementation of how everything looks: it creates the MapView and EntityViews, plays one-off Effects, and provides Theme tokens. The MVP ships the **Polygon skin**. _Avoid:_ theme (that is only the token part), renderer.
+- **Skin** — A pluggable implementation of how everything looks: it creates the MapView and EntityViews, plays one-off Effects, and provides Theme tokens. Ships the **Fruit skin** (the default) and the **Polygon skin**. _Avoid:_ theme (that is only the token part), renderer.
 - **EntityView** — The visual for one Tower, Enemy or Projectile. It syncs from the snapshot each frame and may react to SimEvents.
 - **MapView** — The visual for the background, Path and Slots.
 - **WorldRenderer** — Diffs each snapshot by entity id to create, sync and destroy EntityViews. It forwards SimEvents about a living entity (tower fired, enemy damaged) to that entity's view, and hands every other SimEvent to the Skin as an Effect.

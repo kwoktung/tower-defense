@@ -38,21 +38,21 @@ screenshotted, so that changes can be checked by eye as well as by tests.
 
 **Controls**
 
-| Input                                                   | Action                                                |
-| ------------------------------------------------------- | ----------------------------------------------------- |
-| Choose a tower on the top bar, then click an empty plot | Build it                                              |
-| Click a placed tower                                    | Open its panel (upgrade, or sell with a second click) |
-| Click elsewhere or press `Esc`                          | Close the panel                                       |
-| `D`                                                     | Toggle the Debug overlay                              |
+| Input                                               | Action                                                |
+| --------------------------------------------------- | ----------------------------------------------------- |
+| Click an empty plot, then a tower in its menu twice | Preview its range, then build it                      |
+| Click a placed tower                                | Open its panel (upgrade, or sell with a second click) |
+| Click elsewhere or press `Esc`                      | Close the menu or panel                               |
+| `D`                                                 | Toggle the Debug overlay                              |
 
 ## Skins
 
-| Polygon (default)                             | Fruit                                     |
-| --------------------------------------------- | ----------------------------------------- |
-| ![Polygon skin](docs/images/polygon-skin.png) | ![Fruit skin](docs/images/fruit-skin.png) |
+| Fruit (default)                           | Polygon                                       |
+| ----------------------------------------- | --------------------------------------------- |
+| ![Fruit skin](docs/images/fruit-skin.png) | ![Polygon skin](docs/images/polygon-skin.png) |
 
-- **Polygon** is the default and the baseline for debugging and screenshots.
-- **Fruit** is an original chibi orchard theme. Blueberry, pineapple and lemon towers face caterpillars, fruit flies and armored beetles. Open it with `?skin=fruit`.
+- **Fruit** is the default: an original chibi orchard theme. Blueberry, pineapple and lemon towers face caterpillars, fruit flies and armored beetles.
+- **Polygon** is plain shapes, handy for debugging. Open it with `?skin=polygon`.
 
 ## Getting started
 

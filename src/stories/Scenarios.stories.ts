@@ -49,17 +49,19 @@ export const OneOfEachTower: Story = { args: { fixture: 'oneOfEachTower' } };
 /** The skin acceptance page: every tower kind at every level (ADR-0002). */
 export const AllTowerLevels: Story = { args: { fixture: 'allTowerLevels' } };
 /**
- * The same acceptance pages in the fruit skin, so the story smoke test (no console.error) also
- * catches a missing fruit look (ADR-0002).
+ * The same acceptance pages in the polygon skin, so the story smoke test (no console.error) also
+ * catches a missing polygon look (ADR-0002).
  */
-export const AllTowerLevelsFruit: Story = { args: { fixture: 'allTowerLevels', skin: 'fruit' } };
-export const OneOfEachEnemyFruit: Story = { args: { fixture: 'oneOfEachEnemy', skin: 'fruit' } };
-/** Fruit towers turn to their targets: the top one faces right, the middle one left. */
-export const TowersFacingTargetsFruit: Story = {
-  args: { fixture: 'towersFacingTargets', skin: 'fruit' },
+export const AllTowerLevelsPolygon: Story = {
+  args: { fixture: 'allTowerLevels', skin: 'polygon' },
 };
-export const ArmoredWaveFruit: Story = {
-  args: { fixture: 'armoredWave', skin: 'fruit' },
+export const OneOfEachEnemyPolygon: Story = {
+  args: { fixture: 'oneOfEachEnemy', skin: 'polygon' },
+};
+/** Fruit towers turn to their targets: the top one faces right, the middle one left. */
+export const TowersFacingTargets: Story = { args: { fixture: 'towersFacingTargets' } };
+export const ArmoredWavePolygon: Story = {
+  args: { fixture: 'armoredWave', skin: 'polygon' },
   ...timeline(0, 1100),
 };
 /** Armor: the level-1 tower's hits barely dent the armored line; the top-level one cuts through. */

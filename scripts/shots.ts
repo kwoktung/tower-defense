@@ -6,7 +6,7 @@
  *   pnpm shots                 build Storybook, shoot every story
  *   pnpm shots map             only stories whose id or title contains "map"
  *   pnpm shots --skip-build    reuse the existing storybook-static build
- *   pnpm shots --skin=fruit    render with another Skin; files get a `--fruit` suffix
+ *   pnpm shots --skin=polygon  render with another Skin; files get a `--polygon` suffix
  */
 import { spawnSync } from 'node:child_process';
 import { createReadStream, existsSync, mkdirSync, readFileSync, rmSync, statSync } from 'node:fs';

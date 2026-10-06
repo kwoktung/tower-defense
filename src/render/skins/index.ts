@@ -3,11 +3,11 @@ import { fruitSkin } from './fruit/fruit-skin';
 import { polygonSkin } from './polygon/polygon-skin';
 
 export const skins: Record<string, Skin> = {
-  [polygonSkin.id]: polygonSkin,
   [fruitSkin.id]: fruitSkin,
+  [polygonSkin.id]: polygonSkin,
 };
 
-export const DEFAULT_SKIN_ID = polygonSkin.id;
+export const DEFAULT_SKIN_ID = fruitSkin.id;
 export const skinIds = Object.keys(skins);
 
 /** Resolves a skin id, falling back to the default skin for unknown or missing ids. */

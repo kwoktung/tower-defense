@@ -57,7 +57,7 @@ export const TopRow: Story = { args: { slotId: 'slot-2' } };
 /** The rightmost Slot: the row still fits centred. */
 export const RightEdge: Story = { args: { slotId: 'slot-12' } };
 export const BottomRow: Story = { args: { slotId: 'slot-9' } };
-export const OpenFruit: Story = { args: { skin: 'fruit', previewKind: 'slow' } };
-export const NotEnoughGoldFruit: Story = {
-  args: { skin: 'fruit', fixture: 'buildMenuLowGold' },
+export const OpenPolygon: Story = { args: { skin: 'polygon', previewKind: 'slow' } };
+export const NotEnoughGoldPolygon: Story = {
+  args: { skin: 'polygon', fixture: 'buildMenuLowGold' },
 };
