@@ -130,7 +130,7 @@ Status: ready-for-agent
 
 ## Out of Scope
 
-- 已建塔的 panel 也改成环形，见 issue 03，`needs-triage`。
+- 已建塔的 panel 也改成和建造菜单相同的形态，见 issue 03，已定为 `wontfix`：继续用浮动 panel。
 - 运行时切换语言、中文语言包。
 - 暂停和倍速按钮。
 - 键盘快捷键选择塔种（比如 1/2/3）。
