@@ -1,6 +1,6 @@
 import * as Phaser from 'phaser';
 import { createHud, hudModelOf, type Hud } from '../render/hud';
-import type { SkinTheme } from '../render/skin';
+import type { Skin } from '../render/skin';
 import { createTowerPanel, towerPanelModelOf, type TowerPanel } from '../render/tower-panel';
 import type { Simulation } from '../sim/simulation';
 import { SceneKeys } from './keys';
@@ -12,7 +12,7 @@ export interface HudSceneData {
   /** Emits `SIM_EVENTS` with each frame's SimEvents, for one-off HUD feedback. */
   simEvents: Phaser.Events.EventEmitter;
   ui: UiState;
-  theme: SkinTheme;
+  skin: Skin;
   onRestart(): void;
 }
 
@@ -38,15 +38,15 @@ export class HudScene extends Phaser.Scene {
     super(SceneKeys.Hud);
   }
 
-  create({ sim, simEvents, ui, theme, onRestart }: HudSceneData) {
+  create({ sim, simEvents, ui, skin, onRestart }: HudSceneData) {
     this.sim = sim;
     this.ui = ui;
-    this.hud = createHud(this, theme, {
+    this.hud = createHud(this, skin, {
       onChooseBuildKind: (kind) => chooseBuildKind(ui, kind),
       onStartNextWave: () => sim.startNextWave(),
       onRestart,
     });
-    this.panel = createTowerPanel(this, theme, sim.level, {
+    this.panel = createTowerPanel(this, skin, sim.level, {
       onUpgrade: (towerId) => {
         sim.upgradeTower(towerId);
         ui.confirmingSell = false;

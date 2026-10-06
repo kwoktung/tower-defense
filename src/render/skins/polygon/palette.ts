@@ -39,6 +39,8 @@ export const palette = {
   selection: '#fbbf24',
   danger: '#f87171',
   overlay: '#000000',
+  iconCoinEdge: '#b45309',
+  iconFallback: '#ff00ff',
 } as const;
 
 /** The font of the HUD and of text Effects. */

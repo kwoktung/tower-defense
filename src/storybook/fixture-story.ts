@@ -83,14 +83,14 @@ export function mountFixtureStory(
       runner.render(effects);
 
       const hudView = hud
-        ? createHud(scene, skin.theme, {
+        ? createHud(scene, skin, {
             onChooseBuildKind: () => {},
             onStartNextWave: () => sim.startNextWave(),
             onRestart: () => {},
           })
         : null;
       const selection = createTowerSelection(scene, skin.theme, fixture.level);
-      const panel = createTowerPanel(scene, skin.theme, fixture.level, {
+      const panel = createTowerPanel(scene, skin, fixture.level, {
         onUpgrade: (towerId) => sim.upgradeTower(towerId),
         onSell: (towerId) => sim.sellTower(towerId),
       });

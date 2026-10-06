@@ -3,8 +3,9 @@ import { towerStats, type LevelDef, type TowerLevelDef } from '../content/schema
 import { GAME_HEIGHT, GAME_WIDTH } from '../game-config';
 import { slotCenter, type Point } from '../sim/path';
 import type { Simulation } from '../sim/simulation';
-import { BAR_HEIGHT, createButton } from './hud';
+import { BAR_HEIGHT, createButton, type UiSkin } from './hud';
 import { colorNumber, type SkinTheme } from './skin';
+import { strings, towerName } from './strings';
 
 /** One stat line of the panel: its value now and at the next level (null at the top level). */
 export interface TowerStatLine {
@@ -34,7 +35,7 @@ export interface TowerPanelActions {
   onSell(towerId: number): void;
 }
 
-const fireRate = (def: TowerLevelDef) => `${(1 / def.cooldownSec).toFixed(1)}/秒`;
+const fireRate = (def: TowerLevelDef) => strings.perSecond((1 / def.cooldownSec).toFixed(1));
 
 function statLines(current: TowerLevelDef, next: TowerLevelDef | undefined): TowerStatLine[] {
   // A stat shows when this level or the next has it, e.g. a Splash the next level gains.
@@ -43,13 +44,16 @@ function statLines(current: TowerLevelDef, next: TowerLevelDef | undefined): Tow
     const then = next ? of(next) : null;
     return now === null && then === null ? [] : [{ label, current: now ?? '—', next: then }];
   };
+  const { stats } = strings;
   return [
-    ...line('伤害', (d) => String(d.damage)),
-    ...line('射速', fireRate),
-    ...line('射程', (d) => String(d.range)),
-    ...line('溅射', (d) => (d.attack.mode === 'splash' ? String(d.attack.radius) : null)),
-    ...line('减速', (d) =>
-      d.slow ? `${Math.round(d.slow.factor * 100)}% · ${d.slow.durationSec}秒` : null,
+    ...line(stats.damage, (d) => String(d.damage)),
+    ...line(stats.rate, fireRate),
+    ...line(stats.range, (d) => String(d.range)),
+    ...line(stats.splash, (d) => (d.attack.mode === 'splash' ? String(d.attack.radius) : null)),
+    ...line(stats.slow, (d) =>
+      d.slow
+        ? `${Math.round(d.slow.factor * 100)}% · ${strings.seconds(d.slow.durationSec)}`
+        : null,
     ),
   ];
 }
@@ -68,7 +72,7 @@ export function towerPanelModelOf(
   return {
     towerId: tower.id,
     slotId: tower.slotId,
-    name: sim.units.towers[tower.kind]!.name,
+    name: towerName(tower.kind),
     level: tower.level,
     range: current.range,
     nextRange: next?.range ?? null,
@@ -146,10 +150,11 @@ export function panelPosition(tower: Point, height: number): Point {
 
 export function createTowerPanel(
   scene: Phaser.Scene,
-  theme: SkinTheme,
+  skin: UiSkin,
   level: LevelDef,
   actions: TowerPanelActions,
 ): TowerPanel {
+  const { theme } = skin;
   const root = scene.add.container(0, 0).setDepth(1500).setVisible(false);
   const bg = scene.add.graphics();
   const textStyle = { fontFamily: theme.fonts.ui, fontSize: '14px', color: theme.colors.text };
@@ -159,14 +164,14 @@ export function createTowerPanel(
   const buttonWidth = (PANEL_WIDTH - PAD * 3) / 2;
   const upgrade = createButton(
     scene,
-    theme,
+    skin,
     '',
     { x: PAD + buttonWidth / 2, y: 0, width: buttonWidth, height: BUTTON_HEIGHT },
     () => towerId !== null && actions.onUpgrade(towerId),
   );
   const sell = createButton(
     scene,
-    theme,
+    skin,
     '',
     { x: PAD * 2 + buttonWidth * 1.5, y: 0, width: buttonWidth, height: BUTTON_HEIGHT },
     () => towerId !== null && actions.onSell(towerId),
@@ -183,7 +188,7 @@ export function createTowerPanel(
       root.setVisible(Boolean(model && c));
       if (!model || !c) return;
 
-      title.setText(`${model.name}  Lv${model.level}`);
+      title.setText(`${model.name}  ${strings.level(model.level)}`);
       stats.setText(
         model.stats.map((s) => `${s.label}  ${s.current}${s.next ? `  →  ${s.next}` : ''}`),
       );
@@ -194,14 +199,17 @@ export function createTowerPanel(
 
       if (model.upgrade) {
         const { cost, affordable, allowed } = model.upgrade;
-        upgrade.setLabel(`升级 ${cost}`, affordable ? undefined : theme.colors.danger);
+        upgrade.setLabel(
+          [{ icon: 'upgrade' }, String(cost)],
+          affordable ? undefined : theme.colors.danger,
+        );
         upgrade.setEnabled(allowed);
       } else {
-        upgrade.setLabel('已满级');
+        upgrade.setLabel(strings.maxLevel);
         upgrade.setEnabled(false);
       }
       sell.setLabel(
-        model.confirmingSell ? `确认卖出 +${model.sellValue}` : `卖出 +${model.sellValue}`,
+        model.confirmingSell ? strings.confirmSell(model.sellValue) : strings.sell(model.sellValue),
       );
       sell.setSelected(model.confirmingSell);
 

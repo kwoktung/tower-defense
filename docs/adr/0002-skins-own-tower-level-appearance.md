@@ -21,6 +21,7 @@ Three things could break that:
 - **A Skin must cover every (kind, level) in the Unit catalog.** If it lacks one, it still renders a fallback, so the game keeps running, but it reports `console.error`. The `allTowerLevels` Scenario renders every combination, so the story smoke test (no `console.error`) fails before a gap ships.
 - Views may read other entities of the same snapshot through the sync context (today: an enemy's position, so a tower can face its target). It is read-only and per frame; views still never change the Simulation. Added for the fruit skin, 2026-10-05.
 - The selection ring, range circles and the tower panel are HUD/UI. They use Theme tokens only and are not part of any EntityView.
+- **HUD icons belong to the Skin.** The HUD draws its icons (heart, coin, flag, play, retry, upgrade) through `Skin.createIcon`, so they match the Skin's style. Like tower levels, a Skin must draw every icon in `ICON_NAMES`; for one it can't, it renders a fallback and reports `console.error`, and the `Icons` stories catch the gap. Added 2026-10-06.
 
 ## Consequences
 

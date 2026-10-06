@@ -2,7 +2,6 @@
   "sellRefundRatio": 0.7,
   "towers": {
     "basic": {
-      "name": "基础塔",
       "levels": [
         {
           "cost": 50,
@@ -31,7 +30,6 @@
       ]
     },
     "splash": {
-      "name": "溅射塔",
       "levels": [
         {
           "cost": 70,
@@ -60,7 +58,6 @@
       ]
     },
     "slow": {
-      "name": "减速塔",
       "levels": [
         {
           "cost": 60,

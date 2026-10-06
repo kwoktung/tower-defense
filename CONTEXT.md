@@ -28,7 +28,7 @@ Use these terms in code, tickets, commits and reviews. Avoid the listed synonyms
 - **Auto start** — After a Wave has fully spawned and the field is clear, a countdown (the level's auto-start seconds) starts the next Wave by itself. The player may start it sooner during the countdown, for no bonus. _Avoid:_ autoplay.
 - **Early call** — Starting the next Wave once the current one has fully spawned while enemies are still on the field. It pays an **early-call bonus**: living enemies × the level's gold per enemy. _Avoid:_ skip, rush.
 - **Leak** — An Enemy reaching the end of the Path; costs lives. _Avoid:_ escape.
-- **Unit catalog** — Config describing every Tower and Enemy kind's stats, per Tower level for Towers. It holds no art (ADR-0002).
+- **Unit catalog** — Config describing every Tower and Enemy kind's stats, per Tower level for Towers. It holds no art (ADR-0002) and no display text (see Strings).
 - **Level definition** — Config describing the grid, Path, Slots, starting gold/lives and Waves.
 
 ## Rendering
@@ -37,8 +37,9 @@ Use these terms in code, tickets, commits and reviews. Avoid the listed synonyms
 - **EntityView** — The visual for one Tower, Enemy or Projectile. It syncs from the snapshot each frame and may react to SimEvents.
 - **MapView** — The visual for the background, Path and Slots.
 - **WorldRenderer** — Diffs each snapshot by entity id to create, sync and destroy EntityViews. It forwards SimEvents about a living entity (tower fired, enemy damaged) to that entity's view, and hands every other SimEvent to the Skin as an Effect.
-- **Theme token** — A named colour or font provided by the Skin; the HUD reads only these.
-- **HUD** — The Phaser-drawn overlay scene showing gold, lives, wave, the build / next-wave buttons and the end-of-game overlay. The Game scene launches it on every start, including restarts.
+- **Theme token** — A named colour or font provided by the Skin; the HUD reads only these and the Skin's HUD icons.
+- **HUD** — The Phaser-drawn overlay scene showing gold, lives, wave, the build / next-wave buttons and the end-of-game overlay. The Game scene launches it on every start, including restarts. Numbers are shown as Skin-drawn icons plus values; all text it shows comes from **Strings**.
+- **Strings** — `src/render/strings.ts`, the only source of display text (tower names included; the Unit catalog holds none). English only for now. _Avoid:_ copy, labels file.
 - **Effect** — A one-off visual for a SimEvent (fire pulse, hit flash, kill ring, splash ring). Effects never change the Simulation.
 - **UI state** — Player choices that are not game state, such as the selected tower kind; shared by the Game and HUD scenes, never stored in SimState.
 - **Debug overlay** — A skin-independent layer showing ranges, ids, hp, path waypoints and Slot coordinates. Toggled with `D` in game or the `debug` control in Storybook.

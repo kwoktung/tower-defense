@@ -17,11 +17,11 @@ export default meta;
 
 type Story = StoryObj<HudArgs>;
 
-/** Before the first Wave: "开始第 1 波", enabled. */
+/** Before the first Wave: "[play] Start", enabled. */
 export const Default: Story = { args: { fixture: 'emptyMap' } };
-/** The current Wave still spawning: "出怪中", disabled. */
+/** The current Wave still spawning: a bare "[play]", disabled. */
 export const WaveSpawning: Story = { args: { fixture: 'waveSpawning' } };
-/** Spawned, enemies still on the field: "提前开波 +12" in gold, enabled (an Early call). */
+/** Spawned, enemies still on the field: "[play] +12 [coin]" in gold, enabled (an Early call). */
 export const EarlyCall: Story = { args: { fixture: 'earlyCallReady' } };
 /** Just made an Early call: "+12" floats from the gold (frozen at its first frame). */
 export const EarlyCallBonus: Story = {
@@ -35,11 +35,11 @@ export const EarlyCallBonus: Story = {
     });
   },
 };
-/** The Auto start countdown: "下一波 3", enabled to start now. */
+/** The Auto start countdown: "[play] 3", enabled to start now. */
 export const AutoStartCountdown: Story = { args: { fixture: 'waveCountdown' } };
 /** Not enough gold for any tower: build buttons are disabled. */
 export const LowGold: Story = { args: { fixture: 'lowGold' } };
-/** During the last Wave ("第 N / N 波"): "最后一波", disabled. */
+/** During the last Wave ("[flag] N/N"): no next-wave button. */
 export const FinalWave: Story = { args: { fixture: 'finalWave' } };
 export const WonOverlay: Story = { args: { fixture: 'won' } };
 export const LostOverlay: Story = { args: { fixture: 'lost' } };

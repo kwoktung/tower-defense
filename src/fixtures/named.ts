@@ -103,7 +103,7 @@ export const fixtures = {
   /** A level-2 slow tower with gold for its upgrade, which brings a splash (open its panel in stories). */
   slowTowerSelected: (): Fixture => scenario().withGold(200).withTower('slow', 'slot-6', 2).build(),
 
-  /** The first Wave still spawning: the next-wave button reads "出怪中". */
+  /** The first Wave still spawning: the next-wave button is disabled. */
   waveSpawning: (): Fixture =>
     scenario()
       .atWave(0)

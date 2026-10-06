@@ -110,9 +110,10 @@ export const UnitCatalogSchema = z.object({
   towers: z.record(
     z.string().min(1),
     z.object({
-      /** Shown on the HUD build button. */
-      name: z.string().min(1),
-      /** Stats per Tower level; `levels[0]` is level 1. No art: Skins decide looks (ADR-0002). */
+      /**
+       * Stats per Tower level; `levels[0]` is level 1. No art (Skins decide looks, ADR-0002) and
+       * no display text (names live in `render/strings.ts`).
+       */
       levels: z.array(TowerLevelSchema).min(1),
     }),
   ),

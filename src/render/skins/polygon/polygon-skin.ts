@@ -7,6 +7,7 @@ import { createEnemyView } from './enemy-view';
 import { createTowerView } from './tower-view';
 import { palette, uiFont } from './palette';
 import { createProjectileView } from './projectile-view';
+import { createVectorIcon, type IconStyle } from '../vector-icons';
 
 const theme: SkinTheme = {
   colors: {
@@ -29,6 +30,17 @@ const theme: SkinTheme = {
   fonts: {
     ui: uiFont,
   },
+};
+
+const iconStyle: IconStyle = {
+  heart: palette.enemyNormal,
+  coin: palette.gold,
+  coinEdge: palette.iconCoinEdge,
+  flag: palette.towerTrimTop,
+  flagPole: palette.textMuted,
+  glyph: palette.text,
+  upgrade: palette.hpBar,
+  fallback: palette.iconFallback,
 };
 
 /** Path band width as a fraction of the tile size. */
@@ -100,4 +112,5 @@ export const polygonSkin: Skin = {
   createEnemyView,
   createProjectileView,
   playEffect,
+  createIcon: (scene, name, size) => createVectorIcon(scene, name, size, iconStyle),
 };

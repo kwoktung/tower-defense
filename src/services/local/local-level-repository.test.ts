@@ -93,7 +93,6 @@ describe('local LevelRepository', () => {
       ...units,
       towers: {
         bomb: {
-          name: 'bomb',
           levels: [{ ...units.towers.basic!.levels[0], attack: { mode: 'splash' } }],
         },
       },

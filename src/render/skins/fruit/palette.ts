@@ -21,6 +21,10 @@ export const palette = {
   /** The sour ring and wash on a slowed enemy. */
   sour: '#d4f04a',
   fallback: '#ff00ff',
+  iconHeart: '#ff5a5f',
+  iconCoinEdge: '#c27c0e',
+  iconFlag: '#ff7a3d',
+  iconOutline: '#2a1a0e',
 } as const;
 
 /** Juice colour of each tower kind: its shots' splashes and its sale. */

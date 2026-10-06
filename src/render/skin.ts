@@ -30,6 +30,10 @@ export interface SkinTheme {
   };
 }
 
+/** The HUD's icons. A Skin draws every one of them, in its own style. */
+export const ICON_NAMES = ['heart', 'coin', 'flag', 'play', 'retry', 'upgrade'] as const;
+export type IconName = (typeof ICON_NAMES)[number];
+
 /** What the pointer is over: an empty Slot, optionally previewing the selected tower's range. */
 export interface SlotHover {
   slotId: string;
@@ -85,6 +89,11 @@ export interface Skin {
    * or a projectile's impact. Events the skin doesn't care about are ignored.
    */
   playEffect(scene: Phaser.Scene, event: SimEvent): void;
+  /**
+   * A HUD icon about `size` world units across, centred on its origin. For a name it can't
+   * draw a Skin still renders a fallback, but reports console.error (ADR-0002).
+   */
+  createIcon(scene: Phaser.Scene, name: IconName, size: number): Phaser.GameObjects.Container;
 }
 
 /** Converts a `#rrggbb` token to the number form Phaser's Graphics API expects. */

@@ -77,7 +77,7 @@ export class GameScene extends Phaser.Scene {
       sim,
       simEvents: this.simEvents,
       ui,
-      theme: skin.theme,
+      skin,
       onRestart: () => {
         const debugVisible = this.runner.debugOverlay.visible;
         const next: GameSceneData = { ...data, debug: debugVisible, seed: Date.now() };
